@@ -1,0 +1,35 @@
+import { writable } from "svelte/store";
+
+export type Route =
+  | { name: "library" }
+  | { name: "reader"; storyId: string }
+  | { name: "settings" };
+
+function parse(hash: string): Route {
+  const h = hash.replace(/^#\/?/, "");
+  if (!h || h === "library") return { name: "library" };
+  if (h === "settings") return { name: "settings" };
+  const readerMatch = h.match(/^story\/([^/]+)$/);
+  if (readerMatch) return { name: "reader", storyId: readerMatch[1] };
+  return { name: "library" };
+}
+
+export const route = writable<Route>(parse(window.location.hash));
+
+window.addEventListener("hashchange", () => {
+  route.set(parse(window.location.hash));
+});
+
+export function navigate(next: Route): void {
+  const hash =
+    next.name === "library"
+      ? "#/library"
+      : next.name === "settings"
+        ? "#/settings"
+        : `#/story/${next.storyId}`;
+  if (window.location.hash !== hash) {
+    window.location.hash = hash;
+  } else {
+    route.set(next);
+  }
+}
