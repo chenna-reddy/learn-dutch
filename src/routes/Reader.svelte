@@ -138,8 +138,9 @@
     if (index < story.sentences.length - 1) {
       index++;
       setCurrentSentence(storyId, index);
-    } else {
-      setCompleted(storyId, true);
+      if (index === story.sentences.length - 1 && !progress?.completed) {
+        setCompleted(storyId, true);
+      }
     }
   }
 
@@ -260,7 +261,11 @@
           ? $_("reader.markInProgress")
           : $_("reader.markCompleted")}
       </button>
-      <button class="btn-ghost" on:click={goNext}>
+      <button
+        class="btn-ghost"
+        on:click={goNext}
+        disabled={index >= total - 1}
+      >
         {$_("reader.next")} &rarr;
       </button>
     </div>
