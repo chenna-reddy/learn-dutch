@@ -7,6 +7,7 @@ const AZURE_SPEECH_REGION = defineSecret("AZURE_SPEECH_REGION");
 
 export const getSpeechToken = onRequest(
   {
+    region: "europe-west3",
     secrets: [AZURE_SPEECH_KEY, AZURE_SPEECH_REGION],
     cors: true,
     maxInstances: 10,
