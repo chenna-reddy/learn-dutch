@@ -1,6 +1,12 @@
 import { onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import { logger } from "firebase-functions";
+import { initializeApp, getApps } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+
+if (getApps().length === 0) {
+  initializeApp();
+}
 
 const AZURE_SPEECH_KEY = defineSecret("AZURE_SPEECH_KEY");
 const AZURE_SPEECH_REGION = defineSecret("AZURE_SPEECH_REGION");
@@ -12,8 +18,24 @@ export const getSpeechToken = onRequest(
     cors: true,
     maxInstances: 10,
   },
-  async (_req, res) => {
+  async (req, res) => {
     try {
+      const authHeader = req.get("authorization") || "";
+      const idToken = authHeader.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : "";
+      if (!idToken) {
+        res.status(401).json({ error: "unauthenticated" });
+        return;
+      }
+      try {
+        await getAuth().verifyIdToken(idToken);
+      } catch (err) {
+        logger.warn("Invalid ID token", err);
+        res.status(401).json({ error: "invalid_token" });
+        return;
+      }
+
       const region = AZURE_SPEECH_REGION.value();
       const key = AZURE_SPEECH_KEY.value();
 

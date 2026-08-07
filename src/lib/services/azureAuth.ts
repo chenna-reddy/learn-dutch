@@ -1,3 +1,5 @@
+import { auth } from "../firebase";
+
 interface TokenResponse {
   token: string;
   region: string;
@@ -21,7 +23,13 @@ export async function fetchSpeechToken(): Promise<CachedToken> {
   if (pending) return pending;
 
   pending = (async () => {
-    const res = await fetch(TOKEN_URL, { method: "GET" });
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error("not_signed_in");
+    const idToken = await currentUser.getIdToken();
+    const res = await fetch(TOKEN_URL, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
     if (!res.ok) throw new Error(`Token fetch failed: ${res.status}`);
     const data = (await res.json()) as TokenResponse;
     cached = {

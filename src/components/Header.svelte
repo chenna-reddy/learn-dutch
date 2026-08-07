@@ -2,6 +2,8 @@
   import { _, locale } from "svelte-i18n";
   import { setLocale } from "../lib/i18n";
   import { navigate, route } from "../lib/router";
+  import { isSignedIn } from "../lib/stores/auth";
+  import AccountMenu from "./AccountMenu.svelte";
 
   function goLibrary() {
     navigate({ name: "library" });
@@ -18,16 +20,18 @@
       <span class="brand-title">{$_("app.title")}</span>
     </button>
     <nav class="nav">
-      <button
-        class="btn-ghost"
-        class:active={$route.name === "library"}
-        on:click={goLibrary}>{$_("nav.library")}</button
-      >
-      <button
-        class="btn-ghost"
-        class:active={$route.name === "settings"}
-        on:click={goSettings}>{$_("nav.settings")}</button
-      >
+      {#if $isSignedIn}
+        <button
+          class="btn-ghost"
+          class:active={$route.name === "library"}
+          on:click={goLibrary}>{$_("nav.library")}</button
+        >
+        <button
+          class="btn-ghost"
+          class:active={$route.name === "settings"}
+          on:click={goSettings}>{$_("nav.settings")}</button
+        >
+      {/if}
       <div class="lang-toggle">
         <button
           class:active={$locale?.startsWith("nl")}
@@ -38,6 +42,9 @@
           on:click={() => setLocale("en")}>EN</button
         >
       </div>
+      {#if $isSignedIn}
+        <AccountMenu />
+      {/if}
     </nav>
   </div>
 </header>
@@ -78,7 +85,7 @@
   .nav {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.4rem;
   }
   .nav .active {
     background: rgba(11, 107, 203, 0.1);
@@ -87,7 +94,6 @@
   }
   .lang-toggle {
     display: flex;
-    margin-left: 0.5rem;
     border: 1px solid var(--color-border);
     border-radius: 999px;
     overflow: hidden;

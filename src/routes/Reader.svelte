@@ -89,8 +89,9 @@
         },
         $settingsStore
       );
-    } catch {
+    } catch (err) {
       isSpeaking = false;
+      console.warn("Speak failed", err);
     }
   }
 
@@ -234,6 +235,8 @@
         {isListening ? $_("reader.stopSpeaking") : $_("reader.speak")}
       </button>
     </div>
+
+
 
     <div class="speed-row">
       <span class="speed-label">{$_("reader.speed")}</span>

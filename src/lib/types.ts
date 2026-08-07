@@ -35,6 +35,13 @@ export interface ProgressState {
   stories: Record<string, StoryProgress>;
 }
 
+export interface Student {
+  id: string;
+  name: string;
+  avatarColor: string;
+  createdAt: string;
+}
+
 export type VoiceQuality = "local" | "neural";
 export type ScoringMode = "local" | "azure";
 
