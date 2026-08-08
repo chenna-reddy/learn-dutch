@@ -17,6 +17,7 @@ export const getSpeechToken = onRequest(
     secrets: [AZURE_SPEECH_KEY, AZURE_SPEECH_REGION],
     cors: true,
     maxInstances: 10,
+    invoker: "public",
   },
   async (req, res) => {
     try {
