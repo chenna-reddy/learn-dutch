@@ -1,47 +1,164 @@
-# Svelte + TS + Vite
+# Learn Dutch Reading
 
-This template should help get you started developing with Svelte and TypeScript in Vite.
+A web app for kids to practice Dutch reading, listening, and speaking. Parents can create multiple student profiles so each child has their own progress, fluency scores, and reading position.
 
-## Recommended IDE Setup
+Built with **Svelte 5 + TypeScript + Vite**, hosted on **Firebase Hosting**, with **Cloud Functions** for Azure Speech token management and **Firestore** for per-student progress.
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+## Features
 
-## Need an official Svelte framework?
+- **Story library** — Dutch stories stored as Markdown files with YAML frontmatter
+- **Sentence-by-sentence reader** — big font, listen button, read-aloud button
+- **Text-to-speech** — device voice (free) or Azure Neural Dutch voice (`nl-NL-FennaNeural`)
+- **Speech recognition & fluency scoring** — basic Web Speech scoring or Azure Pronunciation Assessment
+- **Multiple student profiles** — one Firebase account can manage many kids; switch via top-right dropdown
+- **Per-student progress in Firestore** — completed stories, current sentence, attempt history, and CEFR-style fluency level
+- **Bilingual UI** — English and Dutch, toggle in the header
+- **Firebase Authentication** — Google and Email/Password sign-in
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+## Tech Stack
 
-## Technical considerations
+| Layer | Choice |
+|---|---|
+| Frontend | Svelte 5 + TypeScript + Vite |
+| Routing | Hash-based Svelte router (`src/lib/router.ts`) |
+| i18n | `svelte-i18n` (EN / NL) |
+| Hosting | Firebase Hosting |
+| Serverless | Firebase Cloud Functions (2nd gen, Node.js 22) |
+| Auth | Firebase Authentication (Google + Email/Password) |
+| Database | Cloud Firestore |
+| TTS | Web Speech API or Azure Speech Services |
+| Speech scoring | Web Speech API + local diff or Azure Pronunciation Assessment |
+| Stories | Markdown + YAML frontmatter in `src/stories/` |
 
-**Why use this over SvelteKit?**
+## Project Structure
 
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
-
-This template contains as little as possible to get started with Vite + TypeScript + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
-
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
-
-**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
-
-Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
-
-**Why include `.vscode/extensions.json`?**
-
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
-
-**Why enable `allowJs` in the TS template?**
-
-While `allowJs: false` would indeed prevent the use of `.js` files in the project, it does not prevent the use of JavaScript syntax in `.svelte` files. In addition, it would force `checkJs: false`, bringing the worst of both worlds: not being able to guarantee the entire codebase is TypeScript, and also having worse typechecking for the existing JavaScript. In addition, there are valid use cases in which a mixed codebase may be relevant.
-
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/rixo/svelte-hmr#svelte-hmr).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```ts
-// store.ts
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
 ```
+learn-dutch/
+├── firebase.json              # Hosting, Functions, Firestore config
+├── firestore.rules            # Security rules (user-scoped data)
+├── functions/                 # Cloud Functions
+│   ├── src/index.ts           # getSpeechToken: mints short-lived Azure tokens
+│   ├── package.json
+│   └── tsconfig.json
+├── src/
+│   ├── lib/
+│   │   ├── firebase.ts        # Firebase app, auth, and Firestore init
+│   │   ├── i18n/              # Translation files (en.json, nl.json)
+│   │   ├── router.ts          # Hash-based SPA routing
+│   │   ├── services/          # Stories, TTS, speech recognition, students, Azure auth
+│   │   ├── stores/            # Auth, students, progress, settings Svelte stores
+│   │   └── types.ts           # Shared TypeScript types
+│   ├── components/            # Header, AccountMenu, StoryCard
+│   ├── routes/                # Library, Reader, Settings, Login, Students
+│   └── stories/               # Dutch story content (Markdown + YAML)
+└── .env.example               # Required environment variables
+```
+
+## Development
+
+### Prerequisites
+
+- Node.js 22+
+- Firebase CLI: `npm install -g firebase-tools`
+- A Firebase project with Blaze billing plan (Cloud Functions require it)
+- An Azure Speech resource
+
+### 1. Install dependencies
+
+```bash
+npm install
+cd functions && npm install && cd ..
+```
+
+### 2. Configure Firebase
+
+Copy `.env.example` to `.env.local` and fill in your Firebase web app config from the Firebase console (**Project Settings → General → Your apps → Web app**):
+
+```bash
+cp .env.example .env.local
+```
+
+```env
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+```
+
+### 3. Enable Firebase services
+
+In the Firebase console:
+
+1. **Authentication** → Sign-in method → enable **Google** and **Email/Password**
+2. **Firestore Database** → Create database → choose a region close to your users (e.g., `eur3` for Europe)
+
+### 4. Configure Azure Speech
+
+Create an Azure Speech resource at https://portal.azure.com. Copy the **Key** and **Region** (e.g., `westeurope`).
+
+Store them as Firebase Function secrets:
+
+```bash
+firebase functions:secrets:set AZURE_SPEECH_KEY
+firebase functions:secrets:set AZURE_SPEECH_REGION
+```
+
+### 5. Run locally
+
+```bash
+npm run dev
+```
+
+The app runs at `http://localhost:5173`.
+
+> **Note:** To test Azure Neural voices or Azure Pronunciation Assessment locally, you must either deploy the function or run the Firebase emulator with the secrets set. The Web Speech API fallback works without Azure setup.
+
+## Deployment
+
+```bash
+npm run build
+cd functions && npm run build && cd ..
+firebase deploy
+```
+
+Or deploy pieces separately:
+
+```bash
+firebase deploy --only firestore:rules
+firebase deploy --only functions
+firebase deploy --only hosting
+```
+
+## Security Notes
+
+- The Azure Speech key is stored in **Firebase Secret Manager** and never reaches the browser.
+- The Cloud Function `/api/token` is public at the Cloud Run layer but verifies the Firebase ID token before minting an Azure token.
+- Azure Speech tokens are short-lived (9 minutes) and tied to the region used by the function.
+- Firestore data is scoped per user via security rules (`firestore.rules`).
+- If you want to prevent token extraction entirely, switch to a backend proxy model where the function calls Azure on the browser's behalf. The current token model is a pragmatic trade-off for lower latency and simpler architecture.
+
+## Adding Stories
+
+Create a new Markdown file in `src/stories/`:
+
+```markdown
+---
+id: my-story
+title: My Dutch Story
+level: A1
+ageRange: [6, 8]
+tags: [animals, nature]
+---
+
+Dit is de eerste zin.
+
+Dit is de tweede zin.
+```
+
+Each paragraph becomes one sentence card in the reader.
+
+## License
+
+Private / personal-use project.
