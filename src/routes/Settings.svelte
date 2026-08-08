@@ -18,6 +18,11 @@
     settingsStore.update((s) => ({ ...s, ttsRate: v }));
   }
 
+  function updateTranslation(e: Event) {
+    const v = (e.target as HTMLSelectElement).value as "azure" | "none";
+    settingsStore.update((s) => ({ ...s, translationSource: v }));
+  }
+
   function reset() {
     if (confirm($_("settings.resetConfirm"))) resetProgress();
   }
@@ -40,6 +45,14 @@
       <select value={$settingsStore.scoringMode} on:change={updateScoring}>
         <option value="local">{$_("settings.scoringLocal")}</option>
         <option value="azure">{$_("settings.scoringAzure")}</option>
+      </select>
+    </label>
+
+    <label>
+      {$_("settings.translation")}
+      <select value={$settingsStore.translationSource} on:change={updateTranslation}>
+        <option value="azure">{$_("settings.translationAzure")}</option>
+        <option value="none">{$_("settings.translationNone")}</option>
       </select>
     </label>
 

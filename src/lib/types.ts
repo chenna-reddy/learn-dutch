@@ -44,9 +44,11 @@ export interface Student {
 
 export type VoiceQuality = "local" | "neural";
 export type ScoringMode = "local" | "azure";
+export type TranslationSource = "azure" | "none";
 
 export interface Settings {
   voiceQuality: VoiceQuality;
   scoringMode: ScoringMode;
+  translationSource: TranslationSource;
   ttsRate: number;
 }

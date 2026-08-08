@@ -20,6 +20,7 @@
   import { settingsStore } from "../lib/stores/settings";
   import type { Story } from "../lib/types";
   import { navigate } from "../lib/router";
+  import { translateWord, stripPunctuation, getCached } from "../lib/services/translation";
 
   export let storyId: string;
 
@@ -48,7 +49,16 @@
   let lastResult: FluencyResult | null = null;
   let partial: PartialUpdate | null = null;
 
+  let selectedWord: string = "";
+  let selectedClean: string = "";
+  let popupX = 0;
+  let popupY = 0;
+  let translated = "";
+  let translating = false;
+  let showPopup = false;
+
   $: current = story?.sentences[index] ?? "";
+  $: words = splitWords(current);
   $: progress = $progressStore.stories[storyId];
   $: total = story?.sentences.length ?? 0;
   $: canRecognize = webSpeechSupported() || $settingsStore.scoringMode === "azure";
@@ -155,7 +165,61 @@
   function toggleCompleted() {
     setCompleted(storyId, !progress?.completed);
   }
+
+  function splitWords(text: string): string[] {
+    return text.split(/(\s+)/).filter((w) => w.trim().length > 0);
+  }
+
+  function handleWordClick(e: MouseEvent, word: string) {
+    e.stopPropagation();
+    const clean = stripPunctuation(word);
+    if (!clean) return;
+
+    selectedWord = word;
+    selectedClean = clean;
+    popupX = (e as any).clientX ?? 0;
+    popupY = (e as any).clientY ?? 0;
+    showPopup = true;
+    translated = getCached(clean) ?? "";
+
+    if ($settingsStore.translationSource === "azure" && !translated) {
+      translating = true;
+      translateWord(clean)
+        .then((t) => {
+          translated = t;
+        })
+        .catch((err) => {
+          console.warn("Translation failed", err);
+          translated = "";
+        })
+        .finally(() => {
+          translating = false;
+        });
+    }
+  }
+
+  function closePopup() {
+    showPopup = false;
+    selectedWord = "";
+    selectedClean = "";
+    translated = "";
+    translating = false;
+  }
+
+  function speakWord() {
+    if (!selectedClean) return;
+    speak(
+      { text: selectedClean, rate: $settingsStore.ttsRate },
+      $settingsStore
+    );
+  }
+
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") closePopup();
+  }
 </script>
+
+<svelte:window on:click={closePopup} on:keydown={onKeydown} />
 
 {#if loading}
   <section class="container"><p>...</p></section>
@@ -186,12 +250,27 @@
       {#if lastResult}
         <p class="sentence">
           {#each lastResult.wordMatches as w, i}
-            <span class={w.matched ? "word ok" : "word miss"}>{w.expected}</span>
-            {#if i < lastResult.wordMatches.length - 1}&nbsp;{/if}
+            <span
+              class={w.matched ? "word ok" : "word miss"}
+              role="button"
+              tabindex="0"
+              on:click={(e) => handleWordClick(e, w.expected)}
+              on:keypress={(e) => e.key === "Enter" && handleWordClick(e as any, w.expected)}
+            >{w.expected}</span>{#if i < lastResult.wordMatches.length - 1}<span>&nbsp;</span>{/if}
           {/each}
         </p>
       {:else}
-        <p class="sentence">{current}</p>
+        <p class="sentence">
+          {#each words as word, i}
+            <span
+              class="word-clickable"
+              role="button"
+              tabindex="0"
+              on:click={(e) => handleWordClick(e, word)}
+              on:keypress={(e) => e.key === "Enter" && handleWordClick(e as any, word)}
+            >{word}</span>{#if i < words.length - 1}<span>&nbsp;</span>{/if}
+          {/each}
+        </p>
       {/if}
 
       {#if lastResult}
@@ -219,6 +298,35 @@
               {partial.matchedWordCount} / {partial.totalWordCount}
             </span>
           {/if}
+        </div>
+      {/if}
+
+      {#if showPopup}
+        <div
+          class="word-popup card"
+          role="dialog"
+          aria-modal="true"
+          style="left: {Math.min(popupX, window.innerWidth - 280)}px; top: {popupY + 16}px;"
+          on:click|stopPropagation={() => {}}
+        >
+          <div class="popup-header">
+            <span class="popup-word">{selectedClean}</span>
+            <button class="btn-ghost popup-close" on:click={closePopup}>&times;</button>
+          </div>
+          <div class="popup-body">
+            <button class="btn-primary popup-speak" on:click={speakWord}>
+              🔊 {$_("reader.listen")}
+            </button>
+            {#if $settingsStore.translationSource === "none"}
+              <p class="popup-note">{$_("reader.translationDisabled")}</p>
+            {:else if translating}
+              <p class="popup-note">{$_("reader.translating")}...</p>
+            {:else if translated}
+              <p class="popup-translation">{translated}</p>
+            {:else}
+              <p class="popup-note">{$_("reader.noTranslation")}</p>
+            {/if}
+          </div>
         </div>
       {/if}
     </div>
@@ -343,6 +451,66 @@
   .word.miss {
     color: var(--color-danger);
     text-decoration: underline wavy;
+  }
+  .word-clickable,
+  .word {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0.1rem 0.15rem;
+    transition: background 0.1s ease;
+  }
+  .word-clickable:hover,
+  .word:hover {
+    background: rgba(11, 107, 203, 0.12);
+  }
+  .word-popup {
+    position: fixed;
+    z-index: 50;
+    min-width: 220px;
+    max-width: 280px;
+    padding: 0.75rem 1rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
+  }
+  .popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .popup-word {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+  .popup-close {
+    padding: 0.15rem 0.4rem;
+    font-size: 1.2rem;
+    line-height: 1;
+    border-radius: 6px;
+    color: var(--color-muted);
+  }
+  .popup-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .popup-speak {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.75rem;
+    min-width: 0;
+    align-self: flex-start;
+  }
+  .popup-translation {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--color-text);
+  }
+  .popup-note {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-muted);
   }
   .score-row {
     display: flex;

@@ -10,6 +10,8 @@ if (getApps().length === 0) {
 
 const AZURE_SPEECH_KEY = defineSecret("AZURE_SPEECH_KEY");
 const AZURE_SPEECH_REGION = defineSecret("AZURE_SPEECH_REGION");
+const AZURE_TRANSLATOR_KEY = defineSecret("AZURE_TRANSLATOR_KEY");
+const AZURE_TRANSLATOR_REGION = defineSecret("AZURE_TRANSLATOR_REGION");
 
 export const getSpeechToken = onRequest(
   {
@@ -62,6 +64,75 @@ export const getSpeechToken = onRequest(
       res.json({ token, region, expiresInSeconds: 540 });
     } catch (err) {
       logger.error("Unexpected error minting speech token", err);
+      res.status(500).json({ error: "internal" });
+    }
+  }
+);
+
+export const translateWord = onRequest(
+  {
+    region: "europe-west3",
+    secrets: [AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_REGION],
+    cors: true,
+    maxInstances: 10,
+    invoker: "public",
+  },
+  async (req, res) => {
+    try {
+      const authHeader = req.get("authorization") || "";
+      const idToken = authHeader.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : "";
+      if (!idToken) {
+        res.status(401).json({ error: "unauthenticated" });
+        return;
+      }
+      try {
+        await getAuth().verifyIdToken(idToken);
+      } catch (err) {
+        logger.warn("Invalid ID token", err);
+        res.status(401).json({ error: "invalid_token" });
+        return;
+      }
+
+      const body = req.body;
+      const word =
+        typeof body === "string"
+          ? JSON.parse(body).word
+          : body?.word ?? "";
+      if (!word || typeof word !== "string") {
+        res.status(400).json({ error: "word_required" });
+        return;
+      }
+
+      const key = AZURE_TRANSLATOR_KEY.value();
+      const region = AZURE_TRANSLATOR_REGION.value();
+      const endpoint = region
+        ? `https://${region}.api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=nl&to=en`
+        : "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=nl&to=en";
+
+      const upstream = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Ocp-Apim-Subscription-Key": key,
+          "Content-Type": "application/json",
+          ...(region ? { "Ocp-Apim-Subscription-Region": region } : {}),
+        },
+        body: JSON.stringify([{ Text: word }]),
+      });
+
+      if (!upstream.ok) {
+        logger.error("Azure translation failed", { status: upstream.status });
+        res.status(502).json({ error: "translation_failed" });
+        return;
+      }
+
+      const data = (await upstream.json()) as any[];
+      const translated =
+        data?.[0]?.translations?.[0]?.text ?? "";
+      res.json({ word, translated });
+    } catch (err) {
+      logger.error("Unexpected error translating", err);
       res.status(500).json({ error: "internal" });
     }
   }

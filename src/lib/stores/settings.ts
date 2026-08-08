@@ -6,6 +6,7 @@ const STORAGE_KEY = "learn-dutch:settings:v1";
 const defaults: Settings = {
   voiceQuality: "local",
   scoringMode: "local",
+  translationSource: "azure",
   ttsRate: 0.75,
 };
 
