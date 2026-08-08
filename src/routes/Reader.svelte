@@ -77,8 +77,12 @@
     }
     markOpened(storyId)
     const saved = getStoryProgress(storyId)
-    if (saved && saved.currentSentenceIndex < story.sentences.length) {
-      index = saved.currentSentenceIndex
+    if (saved) {
+      if (saved.completed) {
+        index = 0
+      } else if (saved.currentSentenceIndex < story.sentences.length) {
+        index = saved.currentSentenceIndex
+      }
     }
     loading = false
   })
