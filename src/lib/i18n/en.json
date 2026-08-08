@@ -84,6 +84,7 @@
   "progress.position": "Position",
   "progress.score": "Score",
   "progress.lastOpened": "Last opened",
+  "progress.noStarted": "No stories started yet. Open a story from the Library to begin.",
   "addStory.title": "Add Story",
   "addStory.tagline": "Paste a story for your student to practice.",
   "addStory.titleLabel": "Title",

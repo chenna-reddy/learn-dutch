@@ -1,25 +1,47 @@
 <script lang="ts">
-  import { onMount } from "svelte"
+  import { onMount, onDestroy } from "svelte"
   import { _ } from "svelte-i18n"
   import { loadAllStories } from "../lib/services/stories"
+  import { subscribeUploadedStories } from "../lib/services/uploadedStories"
   import { progressStore } from "../lib/stores/progress"
+  import { user } from "../lib/stores/auth"
   import { navigate } from "../lib/router"
   import type { Story, StoryProgress } from "../lib/types"
 
-  let stories: Story[] = []
-  let loading = true
+  let builtInStories: Story[] = []
+  let uploadedStories: Story[] = []
+  let loadingBuiltIn = true
+
+  let unsubUploaded: (() => void) | null = null
 
   onMount(async () => {
-    stories = await loadAllStories()
-    loading = false
+    builtInStories = await loadAllStories()
+    loadingBuiltIn = false
   })
+
+  $: if ($user) {
+    if (unsubUploaded) unsubUploaded()
+    unsubUploaded = subscribeUploadedStories($user.uid, (list) => {
+      uploadedStories = list
+    })
+  }
+
+  onDestroy(() => {
+    if (unsubUploaded) unsubUploaded()
+  })
+
+  $: allStories = [...uploadedStories, ...builtInStories]
+  $: startedStories = allStories.filter(
+    (s) => $progressStore.stories[s.id] != null
+  )
+  $: loading = loadingBuiltIn || uploadedStories.length === 0 && !!unsubUploaded
 
   function goToStory(id: string) {
     navigate({ name: "reader", storyId: id })
   }
 
   function statusLabel(p: StoryProgress | undefined): string {
-    if (!p) return $_("library.notStarted")
+    if (!p) return ""
     if (p.completed) return $_("library.completed")
     if (p.currentSentenceIndex > 0) return $_("library.inProgress")
     return $_("library.notStarted")
@@ -48,8 +70,8 @@
 
   {#if loading}
     <p>...</p>
-  {:else if stories.length === 0}
-    <p>{$_("library.empty")}</p>
+  {:else if startedStories.length === 0}
+    <p>{$_("progress.noStarted")}</p>
   {:else}
     <div class="table-wrapper card">
       <table>
@@ -65,7 +87,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each stories as story (story.id)}
+          {#each startedStories as story (story.id)}
             {@const p = $progressStore.stories[story.id]}
             <tr on:click={() => goToStory(story.id)}>
               <td class="story-cell">

@@ -84,6 +84,7 @@
   "progress.position": "Positie",
   "progress.score": "Score",
   "progress.lastOpened": "Laatst geopend",
+  "progress.noStarted": "Nog geen verhalen begonnen. Open een verhaal uit de bibliotheek om te beginnen.",
   "addStory.title": "Verhaal toevoegen",
   "addStory.tagline": "Plak een verhaal voor je leerling om te oefenen.",
   "addStory.titleLabel": "Titel",

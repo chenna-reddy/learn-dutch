@@ -6,17 +6,12 @@
   export let story: Story
   export let progress: StoryProgress | undefined
 
+  $: hasProgress = progress != null
   $: statusLabel = progress?.completed
     ? $_("library.completed")
     : progress && progress.currentSentenceIndex > 0
       ? $_("library.inProgress")
-      : $_("library.notStarted")
-
-  $: statusClass = progress?.completed
-    ? "done"
-    : progress && progress.currentSentenceIndex > 0
-      ? "progress"
-      : "idle"
+      : ""
 
   function open() {
     navigate({ name: "reader", storyId: story.id })
@@ -26,7 +21,9 @@
 <button class="card story-card" on:click={open}>
   <div class="row top">
     <span class="level">{story.level}</span>
-    <span class="status {statusClass}">{statusLabel}</span>
+    {#if hasProgress}
+      <span class="status {progress?.completed ? 'done' : progress && progress.currentSentenceIndex > 0 ? 'progress' : 'idle'}">{statusLabel}</span>
+    {/if}
   </div>
   <h3 class="title">{story.title}</h3>
   <div class="row bottom">
