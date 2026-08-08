@@ -3,6 +3,7 @@
   "app.tagline": "Lees, luister en spreek Nederlands",
   "nav.library": "Bibliotheek",
   "nav.settings": "Instellingen",
+  "nav.progress": "Voortgang",
   "library.title": "Verhalen",
   "library.empty": "Nog geen verhalen.",
   "library.level": "Niveau",
@@ -68,5 +69,12 @@
   "students.rename": "Hernoemen",
   "students.delete": "Verwijderen",
   "students.confirmDelete": "Deze leerling en alle voortgang verwijderen?",
-  "students.mustKeepOne": "Je moet ten minste één leerling houden."
+  "students.mustKeepOne": "Je moet ten minste één leerling houden.",
+  "progress.title": "Voortgang",
+  "progress.tagline": "Alle verhalen en scores in één oogopslag",
+  "progress.story": "Verhaal",
+  "progress.status": "Status",
+  "progress.position": "Positie",
+  "progress.score": "Score",
+  "progress.lastOpened": "Laatst geopend"
 }

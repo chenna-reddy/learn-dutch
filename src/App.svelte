@@ -6,6 +6,7 @@
   import Settings from "./routes/Settings.svelte";
   import Students from "./routes/Students.svelte";
   import Login from "./routes/Login.svelte";
+  import Progress from "./routes/Progress.svelte";
   import { route } from "./lib/router";
   import { authReady, isSignedIn } from "./lib/stores/auth";
 </script>
@@ -25,6 +26,8 @@
       <Settings />
     {:else if $route.name === "students"}
       <Students />
+    {:else if $route.name === "progress"}
+      <Progress />
     {/if}
   </main>
 {/if}

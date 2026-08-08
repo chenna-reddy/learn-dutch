@@ -11,6 +11,9 @@
   function goSettings() {
     navigate({ name: "settings" });
   }
+  function goProgress() {
+    navigate({ name: "progress" });
+  }
 </script>
 
 <header class="header">
@@ -25,6 +28,11 @@
           class="btn-ghost"
           class:active={$route.name === "library"}
           on:click={goLibrary}>{$_("nav.library")}</button
+        >
+        <button
+          class="btn-ghost"
+          class:active={$route.name === "progress"}
+          on:click={goProgress}>{$_("nav.progress")}</button
         >
         <button
           class="btn-ghost"

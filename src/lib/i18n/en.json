@@ -3,6 +3,7 @@
   "app.tagline": "Read, listen and speak Dutch",
   "nav.library": "Library",
   "nav.settings": "Settings",
+  "nav.progress": "Progress",
   "library.title": "Stories",
   "library.empty": "No stories yet.",
   "library.level": "Level",
@@ -68,5 +69,12 @@
   "students.rename": "Rename",
   "students.delete": "Delete",
   "students.confirmDelete": "Delete this student and all their progress?",
-  "students.mustKeepOne": "You must keep at least one student."
+  "students.mustKeepOne": "You must keep at least one student.",
+  "progress.title": "Progress",
+  "progress.tagline": "All stories and scores at a glance",
+  "progress.story": "Story",
+  "progress.status": "Status",
+  "progress.position": "Position",
+  "progress.score": "Score",
+  "progress.lastOpened": "Last opened"
 }
