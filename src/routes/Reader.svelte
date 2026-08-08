@@ -58,6 +58,8 @@
   let translated = ""
   let translating = false
   let showPopup = false
+  let autoAdvance = false
+  let leaving = false
 
   $: current = story?.sentences[index] ?? ""
   $: words = splitWords(current)
@@ -132,6 +134,12 @@
         transcript: result.transcript,
         at: new Date().toISOString(),
       })
+      if (autoAdvance && result.score === 100 && index < (story?.sentences.length ?? 0) - 1) {
+        leaving = true
+        await new Promise((r) => setTimeout(r, 350))
+        goNext()
+        leaving = false
+      }
     } catch (err) {
       console.warn("Recognition error", err)
     } finally {
@@ -166,10 +174,6 @@
     lastResult = null
     index = i
     setCurrentSentence(storyId, i)
-  }
-
-  function toggleCompleted() {
-    setCompleted(storyId, !progress?.completed)
   }
 
   function splitWords(text: string): string[] {
@@ -248,7 +252,7 @@
       {$_("reader.sentenceOf", { values: { current: index + 1, total } })}
     </p>
 
-    <div class="sentence-card card">
+    <div class="sentence-card card" class:leaving>
       {#if lastResult}
         <p class="sentence">
           {#each lastResult.wordMatches as w, i}
@@ -369,9 +373,10 @@
       <button class="btn-ghost" on:click={goPrev} disabled={index === 0}>
         &larr; {$_("reader.prev")}
       </button>
-      <button class="btn-ghost" on:click={toggleCompleted}>
-        {progress?.completed ? $_("reader.markInProgress") : $_("reader.markCompleted")}
-      </button>
+      <label class="auto-advance">
+        <input type="checkbox" bind:checked={autoAdvance} />
+        <span>{$_("reader.autoAdvance")}</span>
+      </label>
       <button class="btn-ghost" on:click={goNext} disabled={index >= total - 1}>
         {$_("reader.next")} &rarr;
       </button>
@@ -434,6 +439,11 @@
     flex-direction: column;
     justify-content: center;
     gap: 1rem;
+    transition: transform 0.35s ease-out, opacity 0.35s ease-out;
+  }
+  .sentence-card.leaving {
+    transform: translateX(-30px);
+    opacity: 0;
   }
   .sentence {
     font-size: 1.7rem;
