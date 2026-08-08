@@ -23,3 +23,6 @@ functions/node_modules/
 .env
 .env.*
 !.env.example
+
+# Sources
+source/
