@@ -11,6 +11,7 @@
   let builtInStories: Story[] = []
   let uploadedStories: Story[] = []
   let loadingBuiltIn = true
+  let uploadedReady = false
 
   let unsubUploaded: (() => void) | null = null
 
@@ -21,9 +22,13 @@
 
   $: if ($user) {
     if (unsubUploaded) unsubUploaded()
+    uploadedReady = false
     unsubUploaded = subscribeUploadedStories($user.uid, (list) => {
       uploadedStories = list
+      uploadedReady = true
     })
+  } else {
+    uploadedReady = true
   }
 
   onDestroy(() => {
@@ -34,7 +39,7 @@
   $: startedStories = allStories.filter(
     (s) => $progressStore.stories[s.id] != null
   )
-  $: loading = loadingBuiltIn || uploadedStories.length === 0 && !!unsubUploaded
+  $: loading = loadingBuiltIn || !uploadedReady
 
   function goToStory(id: string) {
     navigate({ name: "reader", storyId: id })

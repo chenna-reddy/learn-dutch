@@ -94,6 +94,7 @@
       isSpeaking = false
       return
     }
+    lastResult = null
     isSpeaking = true
     try {
       await speak(
