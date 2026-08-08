@@ -51,4 +51,5 @@ export interface Settings {
   scoringMode: ScoringMode
   translationSource: TranslationSource
   ttsRate: number
+  autoAdvance: boolean
 }

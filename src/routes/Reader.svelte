@@ -58,7 +58,6 @@
   let translated = ""
   let translating = false
   let showPopup = false
-  let autoAdvance = false
   let leaving = false
 
   $: current = story?.sentences[index] ?? ""
@@ -134,7 +133,7 @@
         transcript: result.transcript,
         at: new Date().toISOString(),
       })
-      if (autoAdvance && result.score === 100 && index < (story?.sentences.length ?? 0) - 1) {
+      if ($settingsStore.autoAdvance && result.score === 100 && index < (story?.sentences.length ?? 0) - 1) {
         leaving = true
         await new Promise((r) => setTimeout(r, 350))
         goNext()
@@ -374,7 +373,15 @@
         &larr; {$_("reader.prev")}
       </button>
       <label class="auto-advance">
-        <input type="checkbox" bind:checked={autoAdvance} />
+        <input
+          type="checkbox"
+          checked={$settingsStore.autoAdvance}
+          on:change={() =>
+            settingsStore.update((s) => ({
+              ...s,
+              autoAdvance: !s.autoAdvance,
+            }))}
+        />
         <span>{$_("reader.autoAdvance")}</span>
       </label>
       <button class="btn-ghost" on:click={goNext} disabled={index >= total - 1}>

@@ -8,6 +8,7 @@ const defaults: Settings = {
   scoringMode: "local",
   translationSource: "azure",
   ttsRate: 0.75,
+  autoAdvance: false,
 }
 
 function loadInitial(): Settings {
