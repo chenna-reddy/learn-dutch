@@ -105,7 +105,22 @@ firebase functions:secrets:set AZURE_SPEECH_KEY
 firebase functions:secrets:set AZURE_SPEECH_REGION
 ```
 
-### 5. Run locally
+### 5. Configure Azure Translator (optional)
+
+For word-by-word translation, create an Azure Translator resource at https://portal.azure.com. Copy the **Key** and **Region** (e.g., `westeurope`).
+
+Store them as Firebase Function secrets:
+
+```bash
+firebase functions:secrets:set AZURE_TRANSLATOR_KEY
+firebase functions:secrets:set AZURE_TRANSLATOR_REGION
+firebase functions:secrets:set AZURE_TRANSLATOR_BASE_URL
+```
+
+- `AZURE_TRANSLATOR_REGION` — your Translator resource region (required for regional keys)
+- `AZURE_TRANSLATOR_BASE_URL` — defaults to `api` if not set. Use `api` for the global endpoint, or a custom subdomain if needed
+
+### 6. Run locally
 
 ```bash
 npm run dev

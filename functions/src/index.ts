@@ -12,6 +12,7 @@ const AZURE_SPEECH_KEY = defineSecret("AZURE_SPEECH_KEY")
 const AZURE_SPEECH_REGION = defineSecret("AZURE_SPEECH_REGION")
 const AZURE_TRANSLATOR_KEY = defineSecret("AZURE_TRANSLATOR_KEY")
 const AZURE_TRANSLATOR_REGION = defineSecret("AZURE_TRANSLATOR_REGION")
+const AZURE_TRANSLATOR_BASE_URL = defineSecret("AZURE_TRANSLATOR_BASE_URL")
 
 export const getSpeechToken = onRequest(
   {
@@ -70,7 +71,7 @@ export const getSpeechToken = onRequest(
 export const translateWord = onRequest(
   {
     region: "europe-west3",
-    secrets: [AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_REGION],
+    secrets: [AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_REGION, AZURE_TRANSLATOR_BASE_URL],
     cors: true,
     maxInstances: 10,
     invoker: "public",
@@ -100,17 +101,20 @@ export const translateWord = onRequest(
 
       const key = AZURE_TRANSLATOR_KEY.value()
       const region = AZURE_TRANSLATOR_REGION.value()
-      const endpoint = region
-        ? `https://${region}.api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=nl&to=en`
-        : "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=nl&to=en"
+      const base = AZURE_TRANSLATOR_BASE_URL.value() || "api"
+      const endpoint = `https://${base}.cognitive.microsofttranslator.com/translate?api-version=3.0&from=nl&to=en`
+
+      const headers: Record<string, string> = {
+        "Ocp-Apim-Subscription-Key": key,
+        "Content-Type": "application/json",
+      }
+      if (region) {
+        headers["Ocp-Apim-Subscription-Region"] = region
+      }
 
       const upstream = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Ocp-Apim-Subscription-Key": key,
-          "Content-Type": "application/json",
-          ...(region ? { "Ocp-Apim-Subscription-Region": region } : {}),
-        },
+        headers,
         body: JSON.stringify([{ Text: word }]),
       })
 
