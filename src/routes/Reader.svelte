@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from "svelte"
   import { _ } from "svelte-i18n"
   import { loadStory } from "../lib/services/stories"
+  import { loadUploadedStory } from "../lib/services/uploadedStories"
   import { speak, stopSpeaking } from "../lib/services/tts"
   import { recognize, webSpeechSupported } from "../lib/services/recognition"
   import type {
@@ -18,6 +19,8 @@
     progressStore,
   } from "../lib/stores/progress"
   import { settingsStore } from "../lib/stores/settings"
+  import { user } from "../lib/stores/auth"
+  import { activeStudent } from "../lib/stores/students"
   import type { Story } from "../lib/types"
   import { navigate } from "../lib/router"
   import { translateWord, stripPunctuation, getCached } from "../lib/services/translation"
@@ -65,6 +68,9 @@
 
   onMount(async () => {
     story = await loadStory(storyId)
+    if (!story && $user && $activeStudent) {
+      story = await loadUploadedStory($user.uid, $activeStudent.id, storyId)
+    }
     if (!story) {
       loading = false
       return

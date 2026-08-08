@@ -5,6 +5,7 @@
   "nav.settings": "Settings",
   "nav.progress": "Progress",
   "library.title": "Stories",
+  "library.addStory": "Add story",
   "library.empty": "No stories yet.",
   "library.level": "Level",
   "library.completed": "Completed",
@@ -82,5 +83,14 @@
   "progress.status": "Status",
   "progress.position": "Position",
   "progress.score": "Score",
-  "progress.lastOpened": "Last opened"
+  "progress.lastOpened": "Last opened",
+  "addStory.title": "Add Story",
+  "addStory.tagline": "Paste a story for your student to practice.",
+  "addStory.titleLabel": "Title",
+  "addStory.levelLabel": "Level",
+  "addStory.contentLabel": "Story text",
+  "addStory.hint": "Each paragraph becomes one sentence card in the reader.",
+  "addStory.save": "Save",
+  "addStory.saving": "Saving...",
+  "addStory.errorContent": "Please enter the story text."
 }

@@ -6,6 +6,7 @@ export type Route =
   | { name: "settings" }
   | { name: "students" }
   | { name: "progress" }
+  | { name: "addStory" }
 
 function parse(hash: string): Route {
   const h = hash.replace(/^#\/?/, "")
@@ -13,6 +14,7 @@ function parse(hash: string): Route {
   if (h === "settings") return { name: "settings" }
   if (h === "students") return { name: "students" }
   if (h === "progress") return { name: "progress" }
+  if (h === "add-story") return { name: "addStory" }
   const readerMatch = h.match(/^story\/([^/]+)$/)
   if (readerMatch) return { name: "reader", storyId: readerMatch[1] }
   return { name: "library" }
@@ -34,7 +36,9 @@ export function navigate(next: Route): void {
           ? "#/students"
           : next.name === "progress"
             ? "#/progress"
-            : `#/story/${next.storyId}`
+            : next.name === "addStory"
+              ? "#/add-story"
+              : `#/story/${next.storyId}`
   if (window.location.hash !== hash) {
     window.location.hash = hash
   } else {

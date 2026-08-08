@@ -7,7 +7,7 @@ const storyModules = import.meta.glob("/src/stories/*.md", {
   eager: false,
 }) as Record<string, () => Promise<string>>
 
-function splitSentences(body: string): string[] {
+export function splitSentences(body: string): string[] {
   return body
     .split(/\n\s*\n/)
     .map((s) => s.replace(/\s+/g, " ").trim())
