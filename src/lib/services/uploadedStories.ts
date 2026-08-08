@@ -15,8 +15,8 @@ import { db } from "../firebase"
 import { splitSentences } from "./stories"
 import type { Story, CefrLevel } from "../types"
 
-export function uploadedStoriesCollection(uid: string, studentId: string) {
-  return collection(db, "users", uid, "students", studentId, "uploadedStories")
+export function uploadedStoriesCollection(uid: string) {
+  return collection(db, "users", uid, "uploadedStories")
 }
 
 export interface UploadedStoryDoc {
@@ -38,24 +38,17 @@ export function mapUploadedStoryDoc(id: string, data: any): Story {
   }
 }
 
-export async function loadUploadedStories(
-  uid: string,
-  studentId: string
-): Promise<Story[]> {
-  const q = query(
-    uploadedStoriesCollection(uid, studentId),
-    orderBy("createdAt", "desc")
-  )
+export async function loadUploadedStories(uid: string): Promise<Story[]> {
+  const q = query(uploadedStoriesCollection(uid), orderBy("createdAt", "desc"))
   const snap = await getDocs(q)
   return snap.docs.map((d) => mapUploadedStoryDoc(d.id, d.data()))
 }
 
 export async function loadUploadedStory(
   uid: string,
-  studentId: string,
   storyId: string
 ): Promise<Story | undefined> {
-  const ref = doc(db, "users", uid, "students", studentId, "uploadedStories", storyId)
+  const ref = doc(db, "users", uid, "uploadedStories", storyId)
   const snap = await getDoc(ref)
   if (!snap.exists()) return undefined
   return mapUploadedStoryDoc(snap.id, snap.data())
@@ -63,13 +56,9 @@ export async function loadUploadedStory(
 
 export function subscribeUploadedStories(
   uid: string,
-  studentId: string,
   callback: (stories: Story[]) => void
 ): () => void {
-  const q = query(
-    uploadedStoriesCollection(uid, studentId),
-    orderBy("createdAt", "desc")
-  )
+  const q = query(uploadedStoriesCollection(uid), orderBy("createdAt", "desc"))
   return onSnapshot(
     q,
     (snap) => {
@@ -83,7 +72,6 @@ export function subscribeUploadedStories(
 
 export async function createUploadedStory(
   uid: string,
-  studentId: string,
   title: string,
   content: string,
   level: CefrLevel
@@ -91,7 +79,7 @@ export async function createUploadedStory(
   const trimmed = content.trim()
   if (!trimmed) throw new Error("content_required")
   const sentences = splitSentences(trimmed)
-  await addDoc(uploadedStoriesCollection(uid, studentId), {
+  await addDoc(uploadedStoriesCollection(uid), {
     title: title.trim() || "Untitled",
     content: trimmed,
     level,
@@ -102,10 +90,7 @@ export async function createUploadedStory(
 
 export async function deleteUploadedStory(
   uid: string,
-  studentId: string,
   storyId: string
 ): Promise<void> {
-  await deleteDoc(
-    doc(db, "users", uid, "students", studentId, "uploadedStories", storyId)
-  )
+  await deleteDoc(doc(db, "users", uid, "uploadedStories", storyId))
 }

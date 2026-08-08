@@ -1,7 +1,6 @@
 <script lang="ts">
   import { _ } from "svelte-i18n"
   import { user } from "../lib/stores/auth"
-  import { activeStudent } from "../lib/stores/students"
   import { createUploadedStory } from "../lib/services/uploadedStories"
   import { navigate } from "../lib/router"
   import type { CefrLevel } from "../lib/types"
@@ -16,7 +15,7 @@
 
   async function save() {
     error = ""
-    if (!$user || !$activeStudent) {
+    if (!$user) {
       error = "not_authenticated"
       return
     }
@@ -28,13 +27,7 @@
     }
     busy = true
     try {
-      await createUploadedStory(
-        $user.uid,
-        $activeStudent.id,
-        trimmedTitle,
-        trimmedContent,
-        level
-      )
+      await createUploadedStory($user.uid, trimmedTitle, trimmedContent, level)
       navigate({ name: "library" })
     } catch (e: any) {
       error = e?.message ?? String(e)

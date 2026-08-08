@@ -20,7 +20,6 @@
   } from "../lib/stores/progress"
   import { settingsStore } from "../lib/stores/settings"
   import { user } from "../lib/stores/auth"
-  import { activeStudent } from "../lib/stores/students"
   import type { Story } from "../lib/types"
   import { navigate } from "../lib/router"
   import { translateWord, stripPunctuation, getCached } from "../lib/services/translation"
@@ -68,8 +67,8 @@
 
   onMount(async () => {
     story = await loadStory(storyId)
-    if (!story && $user && $activeStudent) {
-      story = await loadUploadedStory($user.uid, $activeStudent.id, storyId)
+    if (!story && $user) {
+      story = await loadUploadedStory($user.uid, storyId)
     }
     if (!story) {
       loading = false

@@ -4,7 +4,6 @@
   import { loadAllStories } from "../lib/services/stories"
   import { subscribeUploadedStories } from "../lib/services/uploadedStories"
   import { user } from "../lib/stores/auth"
-  import { activeStudent } from "../lib/stores/students"
   import { progressStore } from "../lib/stores/progress"
   import { navigate } from "../lib/router"
   import type { Story } from "../lib/types"
@@ -22,16 +21,12 @@
     loadingBuiltIn = false
   })
 
-  $: if ($user && $activeStudent) {
+  $: if ($user) {
     if (unsubUploaded) unsubUploaded()
-    unsubUploaded = subscribeUploadedStories(
-      $user.uid,
-      $activeStudent.id,
-      (list) => {
-        uploadedStories = list
-        loadingUploaded = false
-      }
-    )
+    unsubUploaded = subscribeUploadedStories($user.uid, (list) => {
+      uploadedStories = list
+      loadingUploaded = false
+    })
   }
 
   onDestroy(() => {
