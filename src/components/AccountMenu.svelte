@@ -1,41 +1,37 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import { user, signOutUser } from "../lib/stores/auth";
-  import {
-    students,
-    activeStudent,
-    activeStudentId,
-  } from "../lib/stores/students";
-  import { navigate } from "../lib/router";
+  import { _ } from "svelte-i18n"
+  import { user, signOutUser } from "../lib/stores/auth"
+  import { students, activeStudent, activeStudentId } from "../lib/stores/students"
+  import { navigate } from "../lib/router"
 
-  let open = false;
-  let root: HTMLDivElement;
+  let open = false
+  let root: HTMLDivElement
 
   function toggle() {
-    open = !open;
+    open = !open
   }
 
   function close() {
-    open = false;
+    open = false
   }
 
   function onClickOutside(event: MouseEvent) {
-    if (root && !root.contains(event.target as Node)) close();
+    if (root && !root.contains(event.target as Node)) close()
   }
 
   function switchTo(id: string) {
-    activeStudentId.set(id);
-    close();
+    activeStudentId.set(id)
+    close()
   }
 
   function goStudents() {
-    navigate({ name: "students" });
-    close();
+    navigate({ name: "students" })
+    close()
   }
 
   async function signOut() {
-    close();
-    await signOutUser();
+    close()
+    await signOutUser()
   }
 </script>
 
@@ -93,9 +89,7 @@
       <button class="menu-item" on:click={goStudents}
         >{$_("account.manageStudents")}</button
       >
-      <button class="menu-item danger" on:click={signOut}
-        >{$_("account.signOut")}</button
-      >
+      <button class="menu-item danger" on:click={signOut}>{$_("account.signOut")}</button>
     </div>
   {/if}
 </div>

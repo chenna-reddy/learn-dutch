@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { _, locale } from "svelte-i18n";
-  import { setLocale } from "../lib/i18n";
-  import { navigate, route } from "../lib/router";
-  import { isSignedIn } from "../lib/stores/auth";
-  import AccountMenu from "./AccountMenu.svelte";
+  import { _, locale } from "svelte-i18n"
+  import { setLocale } from "../lib/i18n"
+  import { navigate, route } from "../lib/router"
+  import { isSignedIn } from "../lib/stores/auth"
+  import AccountMenu from "./AccountMenu.svelte"
 
   function goLibrary() {
-    navigate({ name: "library" });
+    navigate({ name: "library" })
   }
   function goSettings() {
-    navigate({ name: "settings" });
+    navigate({ name: "settings" })
   }
   function goProgress() {
-    navigate({ name: "progress" });
+    navigate({ name: "progress" })
   }
 </script>
 
@@ -41,13 +41,11 @@
         >
       {/if}
       <div class="lang-toggle">
-        <button
-          class:active={$locale?.startsWith("nl")}
-          on:click={() => setLocale("nl")}>NL</button
+        <button class:active={$locale?.startsWith("nl")} on:click={() => setLocale("nl")}
+          >NL</button
         >
-        <button
-          class:active={$locale?.startsWith("en")}
-          on:click={() => setLocale("en")}>EN</button
+        <button class:active={$locale?.startsWith("en")} on:click={() => setLocale("en")}
+          >EN</button
         >
       </div>
       {#if $isSignedIn}

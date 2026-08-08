@@ -1,25 +1,25 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import type { Story, StoryProgress } from "../lib/types";
-  import { navigate } from "../lib/router";
+  import { _ } from "svelte-i18n"
+  import type { Story, StoryProgress } from "../lib/types"
+  import { navigate } from "../lib/router"
 
-  export let story: Story;
-  export let progress: StoryProgress | undefined;
+  export let story: Story
+  export let progress: StoryProgress | undefined
 
   $: statusLabel = progress?.completed
     ? $_("library.completed")
     : progress && progress.currentSentenceIndex > 0
       ? $_("library.inProgress")
-      : $_("library.notStarted");
+      : $_("library.notStarted")
 
   $: statusClass = progress?.completed
     ? "done"
     : progress && progress.currentSentenceIndex > 0
       ? "progress"
-      : "idle";
+      : "idle"
 
   function open() {
-    navigate({ name: "reader", storyId: story.id });
+    navigate({ name: "reader", storyId: story.id })
   }
 </script>
 
@@ -55,7 +55,9 @@
     background: white;
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-sm);
-    transition: transform 0.1s ease, box-shadow 0.15s ease;
+    transition:
+      transform 0.1s ease,
+      box-shadow 0.15s ease;
     gap: 0.75rem;
   }
   .story-card:hover {

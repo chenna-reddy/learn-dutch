@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import { _ } from "svelte-i18n";
-  import { loadStory } from "../lib/services/stories";
-  import { speak, stopSpeaking } from "../lib/services/tts";
-  import { recognize, webSpeechSupported } from "../lib/services/recognition";
+  import { onMount, onDestroy } from "svelte"
+  import { _ } from "svelte-i18n"
+  import { loadStory } from "../lib/services/stories"
+  import { speak, stopSpeaking } from "../lib/services/tts"
+  import { recognize, webSpeechSupported } from "../lib/services/recognition"
   import type {
     FluencyResult,
     PartialUpdate,
     RecognitionHandle,
-  } from "../lib/services/recognition";
+  } from "../lib/services/recognition"
   import {
     getStoryProgress,
     markOpened,
@@ -16,80 +16,80 @@
     setCompleted,
     setCurrentSentence,
     progressStore,
-  } from "../lib/stores/progress";
-  import { settingsStore } from "../lib/stores/settings";
-  import type { Story } from "../lib/types";
-  import { navigate } from "../lib/router";
-  import { translateWord, stripPunctuation, getCached } from "../lib/services/translation";
+  } from "../lib/stores/progress"
+  import { settingsStore } from "../lib/stores/settings"
+  import type { Story } from "../lib/types"
+  import { navigate } from "../lib/router"
+  import { translateWord, stripPunctuation, getCached } from "../lib/services/translation"
 
-  export let storyId: string;
+  export let storyId: string
 
   const speedPresets = [
     { i18n: "reader.speed.verySlow", value: 0.55, emoji: "🐢" },
     { i18n: "reader.speed.slow", value: 0.75, emoji: "🚶" },
     { i18n: "reader.speed.normal", value: 1.0, emoji: "🏃" },
     { i18n: "reader.speed.fast", value: 1.25, emoji: "🐇" },
-  ];
+  ]
 
   function setSpeed(value: number) {
-    settingsStore.update((s) => ({ ...s, ttsRate: value }));
+    settingsStore.update((s) => ({ ...s, ttsRate: value }))
     if (isSpeaking) {
-      stopSpeaking();
-      isSpeaking = false;
-      handleListen();
+      stopSpeaking()
+      isSpeaking = false
+      handleListen()
     }
   }
 
-  let story: Story | undefined;
-  let index = 0;
-  let loading = true;
-  let isSpeaking = false;
-  let isListening = false;
-  let handle: RecognitionHandle | null = null;
-  let lastResult: FluencyResult | null = null;
-  let partial: PartialUpdate | null = null;
+  let story: Story | undefined
+  let index = 0
+  let loading = true
+  let isSpeaking = false
+  let isListening = false
+  let handle: RecognitionHandle | null = null
+  let lastResult: FluencyResult | null = null
+  let partial: PartialUpdate | null = null
 
-  let selectedWord: string = "";
-  let selectedClean: string = "";
-  let popupX = 0;
-  let popupY = 0;
-  let translated = "";
-  let translating = false;
-  let showPopup = false;
+  let selectedWord: string = ""
+  let selectedClean: string = ""
+  let popupX = 0
+  let popupY = 0
+  let translated = ""
+  let translating = false
+  let showPopup = false
 
-  $: current = story?.sentences[index] ?? "";
-  $: words = splitWords(current);
-  $: progress = $progressStore.stories[storyId];
-  $: total = story?.sentences.length ?? 0;
-  $: canRecognize = webSpeechSupported() || $settingsStore.scoringMode === "azure";
+  $: current = story?.sentences[index] ?? ""
+  $: words = splitWords(current)
+  $: progress = $progressStore.stories[storyId]
+  $: total = story?.sentences.length ?? 0
+  $: canRecognize = webSpeechSupported() || $settingsStore.scoringMode === "azure"
 
   onMount(async () => {
-    story = await loadStory(storyId);
+    story = await loadStory(storyId)
     if (!story) {
-      loading = false;
-      return;
+      loading = false
+      return
     }
-    markOpened(storyId);
-    const saved = getStoryProgress(storyId);
+    markOpened(storyId)
+    const saved = getStoryProgress(storyId)
     if (saved && saved.currentSentenceIndex < story.sentences.length) {
-      index = saved.currentSentenceIndex;
+      index = saved.currentSentenceIndex
     }
-    loading = false;
-  });
+    loading = false
+  })
 
   onDestroy(() => {
-    stopSpeaking();
-    handle?.stop();
-  });
+    stopSpeaking()
+    handle?.stop()
+  })
 
   async function handleListen() {
-    if (!current) return;
+    if (!current) return
     if (isSpeaking) {
-      stopSpeaking();
-      isSpeaking = false;
-      return;
+      stopSpeaking()
+      isSpeaking = false
+      return
     }
-    isSpeaking = true;
+    isSpeaking = true
     try {
       await speak(
         {
@@ -98,124 +98,121 @@
           onError: () => (isSpeaking = false),
         },
         $settingsStore
-      );
+      )
     } catch (err) {
-      isSpeaking = false;
-      console.warn("Speak failed", err);
+      isSpeaking = false
+      console.warn("Speak failed", err)
     }
   }
 
   async function handleSpeak() {
-    if (!current) return;
+    if (!current) return
     if (isListening && handle) {
-      handle.stop();
-      return;
+      handle.stop()
+      return
     }
-    lastResult = null;
-    partial = null;
-    isListening = true;
+    lastResult = null
+    partial = null
+    isListening = true
     try {
       handle = await recognize(current, $settingsStore, {
         onPartial: (u) => (partial = u),
-      });
-      const result = await handle.promise;
-      lastResult = result;
+      })
+      const result = await handle.promise
+      lastResult = result
       recordAttempt(storyId, {
         sentenceIndex: index,
         score: result.score,
         transcript: result.transcript,
         at: new Date().toISOString(),
-      });
+      })
     } catch (err) {
-      console.warn("Recognition error", err);
+      console.warn("Recognition error", err)
     } finally {
-      isListening = false;
-      handle = null;
-      partial = null;
+      isListening = false
+      handle = null
+      partial = null
     }
   }
 
   function goPrev() {
-    stopSpeaking();
-    lastResult = null;
-    index = Math.max(0, index - 1);
-    setCurrentSentence(storyId, index);
+    stopSpeaking()
+    lastResult = null
+    index = Math.max(0, index - 1)
+    setCurrentSentence(storyId, index)
   }
 
   function goNext() {
-    stopSpeaking();
-    lastResult = null;
-    if (!story) return;
+    stopSpeaking()
+    lastResult = null
+    if (!story) return
     if (index < story.sentences.length - 1) {
-      index++;
-      setCurrentSentence(storyId, index);
+      index++
+      setCurrentSentence(storyId, index)
       if (index === story.sentences.length - 1 && !progress?.completed) {
-        setCompleted(storyId, true);
+        setCompleted(storyId, true)
       }
     }
   }
 
   function jumpTo(i: number) {
-    stopSpeaking();
-    lastResult = null;
-    index = i;
-    setCurrentSentence(storyId, i);
+    stopSpeaking()
+    lastResult = null
+    index = i
+    setCurrentSentence(storyId, i)
   }
 
   function toggleCompleted() {
-    setCompleted(storyId, !progress?.completed);
+    setCompleted(storyId, !progress?.completed)
   }
 
   function splitWords(text: string): string[] {
-    return text.split(/(\s+)/).filter((w) => w.trim().length > 0);
+    return text.split(/(\s+)/).filter((w) => w.trim().length > 0)
   }
 
   function handleWordClick(e: MouseEvent, word: string) {
-    e.stopPropagation();
-    const clean = stripPunctuation(word);
-    if (!clean) return;
+    e.stopPropagation()
+    const clean = stripPunctuation(word)
+    if (!clean) return
 
-    selectedWord = word;
-    selectedClean = clean;
-    popupX = (e as any).clientX ?? 0;
-    popupY = (e as any).clientY ?? 0;
-    showPopup = true;
-    translated = getCached(clean) ?? "";
+    selectedWord = word
+    selectedClean = clean
+    popupX = (e as any).clientX ?? 0
+    popupY = (e as any).clientY ?? 0
+    showPopup = true
+    translated = getCached(clean) ?? ""
 
     if ($settingsStore.translationSource === "azure" && !translated) {
-      translating = true;
+      translating = true
       translateWord(clean)
         .then((t) => {
-          translated = t;
+          translated = t
         })
         .catch((err) => {
-          console.warn("Translation failed", err);
-          translated = "";
+          console.warn("Translation failed", err)
+          translated = ""
         })
         .finally(() => {
-          translating = false;
-        });
+          translating = false
+        })
     }
   }
 
   function closePopup() {
-    showPopup = false;
-    selectedWord = "";
-    selectedClean = "";
-    translated = "";
-    translating = false;
+    showPopup = false
+    selectedWord = ""
+    selectedClean = ""
+    translated = ""
+    translating = false
   }
 
   function speakWord() {
-    if (!selectedClean) return;
-    speak(
-      { text: selectedClean, rate: $settingsStore.ttsRate },
-      $settingsStore
-    );
+    if (!selectedClean) return
+    speak({ text: selectedClean, rate: $settingsStore.ttsRate }, $settingsStore)
   }
 
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") closePopup();
+    if (e.key === "Escape") closePopup()
   }
 </script>
 
@@ -232,9 +229,8 @@
   </section>
 {:else}
   <section class="container reader">
-    <button
-      class="btn-ghost back"
-      on:click={() => navigate({ name: "library" })}>&larr; {$_("reader.backToLibrary")}</button
+    <button class="btn-ghost back" on:click={() => navigate({ name: "library" })}
+      >&larr; {$_("reader.backToLibrary")}</button
     >
 
     <header class="story-header">
@@ -255,8 +251,10 @@
               role="button"
               tabindex="0"
               on:click={(e) => handleWordClick(e, w.expected)}
-              on:keypress={(e) => e.key === "Enter" && handleWordClick(e as any, w.expected)}
-            >{w.expected}</span>{#if i < lastResult.wordMatches.length - 1}<span>&nbsp;</span>{/if}
+              on:keypress={(e) =>
+                e.key === "Enter" && handleWordClick(e as any, w.expected)}
+              >{w.expected}</span
+            >{#if i < lastResult.wordMatches.length - 1}<span>&nbsp;</span>{/if}
           {/each}
         </p>
       {:else}
@@ -268,7 +266,8 @@
               tabindex="0"
               on:click={(e) => handleWordClick(e, word)}
               on:keypress={(e) => e.key === "Enter" && handleWordClick(e as any, word)}
-            >{word}</span>{#if i < words.length - 1}<span>&nbsp;</span>{/if}
+              >{word}</span
+            >{#if i < words.length - 1}<span>&nbsp;</span>{/if}
           {/each}
         </p>
       {/if}
@@ -306,8 +305,11 @@
           class="word-popup card"
           role="dialog"
           aria-modal="true"
-          style="left: {Math.min(popupX, window.innerWidth - 280)}px; top: {popupY + 16}px;"
+          tabindex="-1"
+          style="left: {Math.min(popupX, window.innerWidth - 280)}px; top: {popupY +
+            16}px;"
           on:click|stopPropagation={() => {}}
+          on:keydown|stopPropagation={() => {}}
         >
           <div class="popup-header">
             <span class="popup-word">{selectedClean}</span>
@@ -335,16 +337,10 @@
       <button class="btn-primary" on:click={handleListen}>
         {isSpeaking ? $_("reader.stop") : $_("reader.listen")}
       </button>
-      <button
-        class="btn-secondary"
-        on:click={handleSpeak}
-        disabled={!canRecognize}
-      >
+      <button class="btn-secondary" on:click={handleSpeak} disabled={!canRecognize}>
         {isListening ? $_("reader.stopSpeaking") : $_("reader.speak")}
       </button>
     </div>
-
-
 
     <div class="speed-row">
       <span class="speed-label">{$_("reader.speed")}</span>
@@ -368,15 +364,9 @@
         &larr; {$_("reader.prev")}
       </button>
       <button class="btn-ghost" on:click={toggleCompleted}>
-        {progress?.completed
-          ? $_("reader.markInProgress")
-          : $_("reader.markCompleted")}
+        {progress?.completed ? $_("reader.markInProgress") : $_("reader.markCompleted")}
       </button>
-      <button
-        class="btn-ghost"
-        on:click={goNext}
-        disabled={index >= total - 1}
-      >
+      <button class="btn-ghost" on:click={goNext} disabled={index >= total - 1}>
         {$_("reader.next")} &rarr;
       </button>
     </div>

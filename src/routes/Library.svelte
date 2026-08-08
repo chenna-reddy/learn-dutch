@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { _ } from "svelte-i18n";
-  import { loadAllStories } from "../lib/services/stories";
-  import { progressStore } from "../lib/stores/progress";
-  import type { Story } from "../lib/types";
-  import StoryCard from "../components/StoryCard.svelte";
+  import { onMount } from "svelte"
+  import { _ } from "svelte-i18n"
+  import { loadAllStories } from "../lib/services/stories"
+  import { progressStore } from "../lib/stores/progress"
+  import type { Story } from "../lib/types"
+  import StoryCard from "../components/StoryCard.svelte"
 
-  let stories: Story[] = [];
-  let loading = true;
+  let stories: Story[] = []
+  let loading = true
 
   onMount(async () => {
-    stories = await loadAllStories();
-    loading = false;
-  });
+    stories = await loadAllStories()
+    loading = false
+  })
 </script>
 
 <section class="container">

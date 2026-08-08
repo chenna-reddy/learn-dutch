@@ -1,6 +1,6 @@
-import { initializeApp, type FirebaseOptions } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, type FirebaseOptions } from "firebase/app"
+import { getAuth } from "firebase/auth"
+import { getFirestore } from "firebase/firestore"
 
 const options: FirebaseOptions = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -9,8 +9,8 @@ const options: FirebaseOptions = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-};
+}
 
-export const firebaseApp = initializeApp(options);
-export const auth = getAuth(firebaseApp);
-export const db = getFirestore(firebaseApp);
+export const firebaseApp = initializeApp(options)
+export const auth = getAuth(firebaseApp)
+export const db = getFirestore(firebaseApp)

@@ -1,43 +1,43 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { _ } from "svelte-i18n";
-  import { loadAllStories } from "../lib/services/stories";
-  import { progressStore } from "../lib/stores/progress";
-  import { navigate } from "../lib/router";
-  import type { Story, StoryProgress } from "../lib/types";
+  import { onMount } from "svelte"
+  import { _ } from "svelte-i18n"
+  import { loadAllStories } from "../lib/services/stories"
+  import { progressStore } from "../lib/stores/progress"
+  import { navigate } from "../lib/router"
+  import type { Story, StoryProgress } from "../lib/types"
 
-  let stories: Story[] = [];
-  let loading = true;
+  let stories: Story[] = []
+  let loading = true
 
   onMount(async () => {
-    stories = await loadAllStories();
-    loading = false;
-  });
+    stories = await loadAllStories()
+    loading = false
+  })
 
   function goToStory(id: string) {
-    navigate({ name: "reader", storyId: id });
+    navigate({ name: "reader", storyId: id })
   }
 
   function statusLabel(p: StoryProgress | undefined): string {
-    if (!p) return $_("library.notStarted");
-    if (p.completed) return $_("library.completed");
-    if (p.currentSentenceIndex > 0) return $_("library.inProgress");
-    return $_("library.notStarted");
+    if (!p) return $_("library.notStarted")
+    if (p.completed) return $_("library.completed")
+    if (p.currentSentenceIndex > 0) return $_("library.inProgress")
+    return $_("library.notStarted")
   }
 
   function statusClass(p: StoryProgress | undefined): string {
-    if (!p) return "idle";
-    if (p.completed) return "done";
-    if (p.currentSentenceIndex > 0) return "progress";
-    return "idle";
+    if (!p) return "idle"
+    if (p.completed) return "done"
+    if (p.currentSentenceIndex > 0) return "progress"
+    return "idle"
   }
 
   function fmtDate(iso: string | undefined): string {
-    if (!iso) return "-";
+    if (!iso) return "-"
     try {
-      return new Date(iso).toLocaleDateString();
+      return new Date(iso).toLocaleDateString()
     } catch {
-      return iso;
+      return iso
     }
   }
 </script>
@@ -70,8 +70,10 @@
             <tr on:click={() => goToStory(story.id)}>
               <td class="story-cell">
                 <strong>{story.title}</strong>
-                <span class="meta">{story.sentences.length}
-                  {story.sentences.length === 1 ? "zin" : "zinnen"}</span>
+                <span class="meta"
+                  >{story.sentences.length}
+                  {story.sentences.length === 1 ? "zin" : "zinnen"}</span
+                >
               </td>
               <td>
                 <span class="level">{story.level}</span>
@@ -88,7 +90,9 @@
               </td>
               <td>
                 {#if p?.averageScore != null}
-                  <span class="score" class:good={p.averageScore >= 70}
+                  <span
+                    class="score"
+                    class:good={p.averageScore >= 70}
                     class:great={p.averageScore >= 85}
                   >
                     {p.averageScore}

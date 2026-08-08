@@ -1,30 +1,30 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import { settingsStore } from "../lib/stores/settings";
-  import { resetProgress } from "../lib/stores/progress";
+  import { _ } from "svelte-i18n"
+  import { settingsStore } from "../lib/stores/settings"
+  import { resetProgress } from "../lib/stores/progress"
 
   function updateVoice(e: Event) {
-    const v = (e.target as HTMLSelectElement).value as "local" | "neural";
-    settingsStore.update((s) => ({ ...s, voiceQuality: v }));
+    const v = (e.target as HTMLSelectElement).value as "local" | "neural"
+    settingsStore.update((s) => ({ ...s, voiceQuality: v }))
   }
 
   function updateScoring(e: Event) {
-    const v = (e.target as HTMLSelectElement).value as "local" | "azure";
-    settingsStore.update((s) => ({ ...s, scoringMode: v }));
+    const v = (e.target as HTMLSelectElement).value as "local" | "azure"
+    settingsStore.update((s) => ({ ...s, scoringMode: v }))
   }
 
   function updateRate(e: Event) {
-    const v = Number((e.target as HTMLInputElement).value);
-    settingsStore.update((s) => ({ ...s, ttsRate: v }));
+    const v = Number((e.target as HTMLInputElement).value)
+    settingsStore.update((s) => ({ ...s, ttsRate: v }))
   }
 
   function updateTranslation(e: Event) {
-    const v = (e.target as HTMLSelectElement).value as "azure" | "none";
-    settingsStore.update((s) => ({ ...s, translationSource: v }));
+    const v = (e.target as HTMLSelectElement).value as "azure" | "none"
+    settingsStore.update((s) => ({ ...s, translationSource: v }))
   }
 
   function reset() {
-    if (confirm($_("settings.resetConfirm"))) resetProgress();
+    if (confirm($_("settings.resetConfirm"))) resetProgress()
   }
 </script>
 

@@ -17,18 +17,18 @@ Built with **Svelte 5 + TypeScript + Vite**, hosted on **Firebase Hosting**, wit
 
 ## Tech Stack
 
-| Layer | Choice |
-|---|---|
-| Frontend | Svelte 5 + TypeScript + Vite |
-| Routing | Hash-based Svelte router (`src/lib/router.ts`) |
-| i18n | `svelte-i18n` (EN / NL) |
-| Hosting | Firebase Hosting |
-| Serverless | Firebase Cloud Functions (2nd gen, Node.js 22) |
-| Auth | Firebase Authentication (Google + Email/Password) |
-| Database | Cloud Firestore |
-| TTS | Web Speech API or Azure Speech Services |
+| Layer          | Choice                                                        |
+| -------------- | ------------------------------------------------------------- |
+| Frontend       | Svelte 5 + TypeScript + Vite                                  |
+| Routing        | Hash-based Svelte router (`src/lib/router.ts`)                |
+| i18n           | `svelte-i18n` (EN / NL)                                       |
+| Hosting        | Firebase Hosting                                              |
+| Serverless     | Firebase Cloud Functions (2nd gen, Node.js 22)                |
+| Auth           | Firebase Authentication (Google + Email/Password)             |
+| Database       | Cloud Firestore                                               |
+| TTS            | Web Speech API or Azure Speech Services                       |
 | Speech scoring | Web Speech API + local diff or Azure Pronunciation Assessment |
-| Stories | Markdown + YAML frontmatter in `src/stories/` |
+| Stories        | Markdown + YAML frontmatter in `src/stories/`                 |
 
 ## Project Structure
 

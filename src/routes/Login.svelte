@@ -1,43 +1,39 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import {
-    signInWithGoogle,
-    signInWithEmail,
-    signUpWithEmail,
-  } from "../lib/stores/auth";
+  import { _ } from "svelte-i18n"
+  import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "../lib/stores/auth"
 
-  let mode: "login" | "signup" = "login";
-  let email = "";
-  let password = "";
-  let displayName = "";
-  let error = "";
-  let busy = false;
+  let mode: "login" | "signup" = "login"
+  let email = ""
+  let password = ""
+  let displayName = ""
+  let error = ""
+  let busy = false
 
   async function google() {
-    error = "";
-    busy = true;
+    error = ""
+    busy = true
     try {
-      await signInWithGoogle();
+      await signInWithGoogle()
     } catch (e: any) {
-      error = e?.message ?? String(e);
+      error = e?.message ?? String(e)
     } finally {
-      busy = false;
+      busy = false
     }
   }
 
   async function submit() {
-    error = "";
-    busy = true;
+    error = ""
+    busy = true
     try {
       if (mode === "login") {
-        await signInWithEmail(email, password);
+        await signInWithEmail(email, password)
       } else {
-        await signUpWithEmail(email, password, displayName || email);
+        await signUpWithEmail(email, password, displayName || email)
       }
     } catch (e: any) {
-      error = e?.message ?? String(e);
+      error = e?.message ?? String(e)
     } finally {
-      busy = false;
+      busy = false
     }
   }
 </script>
@@ -87,9 +83,7 @@
       class="btn-ghost toggle"
       on:click={() => (mode = mode === "login" ? "signup" : "login")}
     >
-      {mode === "login"
-        ? $_("auth.needAccount")
-        : $_("auth.haveAccount")}
+      {mode === "login" ? $_("auth.needAccount") : $_("auth.haveAccount")}
     </button>
 
     {#if error}

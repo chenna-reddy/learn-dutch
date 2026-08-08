@@ -13,7 +13,13 @@
   --radius: 14px;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
     sans-serif;
   color: var(--color-text);
   background: var(--color-bg);
@@ -37,7 +43,10 @@ button {
   border: none;
   border-radius: var(--radius);
   padding: 0.7rem 1.2rem;
-  transition: transform 0.05s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.05s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 }
 button:active {
   transform: translateY(1px);

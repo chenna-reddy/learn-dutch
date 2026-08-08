@@ -1,106 +1,110 @@
-import type { Settings } from "../types";
-import { scoreLocally, type LocalScore } from "./scoring";
-import { fetchSpeechToken } from "./azureAuth";
+import type { Settings } from "../types"
+import { scoreLocally, type LocalScore } from "./scoring"
+import { fetchSpeechToken } from "./azureAuth"
 
 interface SpeechRecognitionResultLike {
-  transcript: string;
-  confidence: number;
-  isFinal?: boolean;
+  transcript: string
+  confidence: number
+  isFinal?: boolean
 }
 
 // Web Speech API TypeScript shims (browser prefixed types are not in lib.dom)
 interface WSR {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  maxAlternatives: number;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onresult: ((ev: any) => void) | null;
-  onerror: ((ev: any) => void) | null;
-  onend: (() => void) | null;
-  onstart: (() => void) | null;
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  maxAlternatives: number
+  start(): void
+  stop(): void
+  abort(): void
+  onresult: ((ev: any) => void) | null
+  onerror: ((ev: any) => void) | null
+  onend: (() => void) | null
+  onstart: (() => void) | null
 }
 
 function getWebSpeechCtor(): (new () => WSR) | null {
-  const w = window as any;
-  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
+  const w = window as any
+  return w.SpeechRecognition || w.webkitSpeechRecognition || null
 }
 
 export function webSpeechSupported(): boolean {
-  return getWebSpeechCtor() !== null;
+  return getWebSpeechCtor() !== null
 }
 
 export interface FluencyResult {
-  score: number;
-  accuracy: number;
-  completeness: number;
-  fluency?: number;
-  prosody?: number;
-  wordMatches: { expected: string; matched: boolean }[];
-  transcript: string;
-  source: "local" | "azure";
+  score: number
+  accuracy: number
+  completeness: number
+  fluency?: number
+  prosody?: number
+  wordMatches: { expected: string; matched: boolean }[]
+  transcript: string
+  source: "local" | "azure"
 }
 
 export interface PartialUpdate {
-  transcript: string;
-  matchedWordCount: number;
-  totalWordCount: number;
+  transcript: string
+  matchedWordCount: number
+  totalWordCount: number
 }
 
 export interface RecognitionOptions {
-  onPartial?: (update: PartialUpdate) => void;
+  onPartial?: (update: PartialUpdate) => void
 }
 
 export interface RecognitionHandle {
-  stop(): void;
-  promise: Promise<FluencyResult>;
+  stop(): void
+  promise: Promise<FluencyResult>
 }
 
-const MIN_LISTEN_MS = 800;
+const MIN_LISTEN_MS = 800
 
 function countMatchesRoughly(expected: string, transcript: string): number {
-  if (!transcript) return 0;
+  if (!transcript) return 0
   const norm = (s: string) =>
-    s.toLowerCase().replace(/[^\p{L}\s'-]/gu, " ").split(/\s+/).filter(Boolean);
-  const expectedWords = norm(expected);
-  const spokenSet = new Set(norm(transcript));
-  return expectedWords.filter((w) => spokenSet.has(w)).length;
+    s
+      .toLowerCase()
+      .replace(/[^\p{L}\s'-]/gu, " ")
+      .split(/\s+/)
+      .filter(Boolean)
+  const expectedWords = norm(expected)
+  const spokenSet = new Set(norm(transcript))
+  return expectedWords.filter((w) => spokenSet.has(w)).length
 }
 
 function recognizeWithWebSpeech(
   expected: string,
   opts: RecognitionOptions
 ): RecognitionHandle {
-  const Ctor = getWebSpeechCtor();
-  if (!Ctor) throw new Error("Web Speech API not supported in this browser");
+  const Ctor = getWebSpeechCtor()
+  if (!Ctor) throw new Error("Web Speech API not supported in this browser")
 
   const expectedWordCount = expected
     .toLowerCase()
     .replace(/[^\p{L}\s'-]/gu, " ")
     .split(/\s+/)
-    .filter(Boolean).length;
+    .filter(Boolean).length
 
-  const recognizer = new Ctor();
-  recognizer.lang = "nl-NL";
-  recognizer.continuous = true;
-  recognizer.interimResults = true;
-  recognizer.maxAlternatives = 1;
+  const recognizer = new Ctor()
+  recognizer.lang = "nl-NL"
+  recognizer.continuous = true
+  recognizer.interimResults = true
+  recognizer.maxAlternatives = 1
 
-  let userStopped = false;
-  let finalTranscript = "";
-  let interimTranscript = "";
-  let startedAt = 0;
-  let stopped = false;
-  let resolved = false;
+  let userStopped = false
+  let finalTranscript = ""
+  let interimTranscript = ""
+  let startedAt = 0
+  let stopped = false
+  let resolved = false
 
   const promise = new Promise<FluencyResult>((resolve, reject) => {
     const finish = () => {
-      if (resolved) return;
-      resolved = true;
-      const combined = (finalTranscript + " " + interimTranscript).trim();
-      const local: LocalScore = scoreLocally(expected, combined);
+      if (resolved) return
+      resolved = true
+      const combined = (finalTranscript + " " + interimTranscript).trim()
+      const local: LocalScore = scoreLocally(expected, combined)
       resolve({
         score: local.score,
         accuracy: local.accuracy,
@@ -108,118 +112,118 @@ function recognizeWithWebSpeech(
         wordMatches: local.wordMatches,
         transcript: local.transcript,
         source: "local",
-      });
-    };
+      })
+    }
 
     recognizer.onstart = () => {
-      startedAt = Date.now();
-    };
+      startedAt = Date.now()
+    }
 
     recognizer.onresult = (event: any) => {
-      interimTranscript = "";
-      const results = event.results as any;
+      interimTranscript = ""
+      const results = event.results as any
       for (let i = event.resultIndex ?? 0; i < results.length; i++) {
-        const result = results[i];
-        const alt = result[0] as SpeechRecognitionResultLike;
+        const result = results[i]
+        const alt = result[0] as SpeechRecognitionResultLike
         if (result.isFinal) {
-          finalTranscript += alt.transcript + " ";
+          finalTranscript += alt.transcript + " "
         } else {
-          interimTranscript += alt.transcript + " ";
+          interimTranscript += alt.transcript + " "
         }
       }
-      const combined = (finalTranscript + " " + interimTranscript).trim();
+      const combined = (finalTranscript + " " + interimTranscript).trim()
       opts.onPartial?.({
         transcript: combined,
         matchedWordCount: countMatchesRoughly(expected, combined),
         totalWordCount: expectedWordCount,
-      });
-    };
+      })
+    }
 
     recognizer.onerror = (event: any) => {
-      const code = event?.error ?? "recognition_error";
+      const code = event?.error ?? "recognition_error"
       if (code === "no-speech" || code === "aborted") {
-        return;
+        return
       }
-      resolved = true;
-      reject(new Error(code));
-    };
+      resolved = true
+      reject(new Error(code))
+    }
 
     recognizer.onend = () => {
-      const elapsed = Date.now() - startedAt;
+      const elapsed = Date.now() - startedAt
       if (!userStopped && !stopped && elapsed < 30_000) {
         try {
-          recognizer.start();
-          return;
+          recognizer.start()
+          return
         } catch {
           // fall through and finish
         }
       }
-      finish();
-    };
+      finish()
+    }
 
     try {
-      recognizer.start();
+      recognizer.start()
     } catch (err) {
-      reject(err);
+      reject(err)
     }
-  });
+  })
 
   return {
     stop: () => {
-      const elapsed = Date.now() - startedAt;
+      const elapsed = Date.now() - startedAt
       if (elapsed < MIN_LISTEN_MS) {
         setTimeout(() => {
-          userStopped = true;
-          stopped = true;
+          userStopped = true
+          stopped = true
           try {
-            recognizer.stop();
+            recognizer.stop()
           } catch {
             // ignore
           }
-        }, MIN_LISTEN_MS - elapsed);
-        return;
+        }, MIN_LISTEN_MS - elapsed)
+        return
       }
-      userStopped = true;
-      stopped = true;
+      userStopped = true
+      stopped = true
       try {
-        recognizer.stop();
+        recognizer.stop()
       } catch {
         // ignore
       }
     },
     promise,
-  };
+  }
 }
 
 async function recognizeWithAzure(
   expected: string,
   _opts: RecognitionOptions
 ): Promise<RecognitionHandle> {
-  const { token, region } = await fetchSpeechToken();
-  const sdk = await import("microsoft-cognitiveservices-speech-sdk");
+  const { token, region } = await fetchSpeechToken()
+  const sdk = await import("microsoft-cognitiveservices-speech-sdk")
 
-  const speechConfig = sdk.SpeechConfig.fromAuthorizationToken(token, region);
-  speechConfig.speechRecognitionLanguage = "nl-NL";
+  const speechConfig = sdk.SpeechConfig.fromAuthorizationToken(token, region)
+  speechConfig.speechRecognitionLanguage = "nl-NL"
   speechConfig.setProperty(
     sdk.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs,
     "3000"
-  );
+  )
   speechConfig.setProperty(
     sdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs,
     "8000"
-  );
+  )
 
-  const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
-  const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+  const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput()
+  const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig)
 
   const pronunciationConfig = new sdk.PronunciationAssessmentConfig(
     expected,
     sdk.PronunciationAssessmentGradingSystem.HundredMark,
     sdk.PronunciationAssessmentGranularity.Word,
     true
-  );
-  pronunciationConfig.enableProsodyAssessment = true;
-  pronunciationConfig.applyTo(recognizer);
+  )
+  pronunciationConfig.enableProsodyAssessment = true
+  pronunciationConfig.applyTo(recognizer)
 
   const promise = new Promise<FluencyResult>((resolve, reject) => {
     recognizer.recognizeOnceAsync(
@@ -229,17 +233,17 @@ async function recognizeWithAzure(
             result.properties.getProperty(
               sdk.PropertyId.SpeechServiceResponse_JsonResult
             ) || "{}"
-          );
-          const nb = json?.NBest?.[0];
-          const pa = nb?.PronunciationAssessment ?? {};
-          const words: any[] = nb?.Words ?? [];
+          )
+          const nb = json?.NBest?.[0]
+          const pa = nb?.PronunciationAssessment ?? {}
+          const words: any[] = nb?.Words ?? []
 
           const wordMatches = words.map((w: any) => ({
             expected: String(w.Word ?? ""),
             matched:
               (w.PronunciationAssessment?.AccuracyScore ?? 0) >= 60 &&
               w.PronunciationAssessment?.ErrorType !== "Omission",
-          }));
+          }))
 
           resolve({
             score: Math.round(pa.PronScore ?? pa.AccuracyScore ?? 0),
@@ -250,30 +254,30 @@ async function recognizeWithAzure(
             wordMatches,
             transcript: result.text ?? "",
             source: "azure",
-          });
+          })
         } catch (err) {
-          reject(err);
+          reject(err)
         } finally {
-          recognizer.close();
+          recognizer.close()
         }
       },
       (err: any) => {
-        recognizer.close();
-        reject(new Error(String(err)));
+        recognizer.close()
+        reject(new Error(String(err)))
       }
-    );
-  });
+    )
+  })
 
   return {
     stop: () => {
       try {
-        recognizer.stopContinuousRecognitionAsync();
+        recognizer.stopContinuousRecognitionAsync()
       } catch {
         // ignore
       }
     },
     promise,
-  };
+  }
 }
 
 export async function recognize(
@@ -283,10 +287,10 @@ export async function recognize(
 ): Promise<RecognitionHandle> {
   if (settings.scoringMode === "azure") {
     try {
-      return await recognizeWithAzure(expected, opts);
+      return await recognizeWithAzure(expected, opts)
     } catch (err) {
-      console.warn("Azure scoring failed, falling back to Web Speech", err);
+      console.warn("Azure scoring failed, falling back to Web Speech", err)
     }
   }
-  return recognizeWithWebSpeech(expected, opts);
+  return recognizeWithWebSpeech(expected, opts)
 }

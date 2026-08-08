@@ -1,66 +1,58 @@
 <script lang="ts">
-  import { _ } from "svelte-i18n";
-  import { user } from "../lib/stores/auth";
-  import {
-    students,
-    activeStudent,
-    activeStudentId,
-  } from "../lib/stores/students";
-  import {
-    createStudent,
-    renameStudent,
-    deleteStudent,
-  } from "../lib/services/students";
+  import { _ } from "svelte-i18n"
+  import { user } from "../lib/stores/auth"
+  import { students, activeStudent, activeStudentId } from "../lib/stores/students"
+  import { createStudent, renameStudent, deleteStudent } from "../lib/services/students"
 
-  let newName = "";
-  let editingId: string | null = null;
-  let editingName = "";
-  let error = "";
+  let newName = ""
+  let editingId: string | null = null
+  let editingName = ""
+  let error = ""
 
   async function add() {
-    error = "";
-    if (!$user) return;
-    const name = newName.trim();
-    if (!name) return;
+    error = ""
+    if (!$user) return
+    const name = newName.trim()
+    if (!name) return
     try {
-      await createStudent($user.uid, name);
-      newName = "";
+      await createStudent($user.uid, name)
+      newName = ""
     } catch (e: any) {
-      error = e?.message ?? String(e);
+      error = e?.message ?? String(e)
     }
   }
 
   function startEdit(id: string, currentName: string) {
-    editingId = id;
-    editingName = currentName;
+    editingId = id
+    editingName = currentName
   }
 
   async function saveEdit() {
-    if (!$user || !editingId) return;
+    if (!$user || !editingId) return
     try {
-      await renameStudent($user.uid, editingId, editingName);
-      editingId = null;
+      await renameStudent($user.uid, editingId, editingName)
+      editingId = null
     } catch (e: any) {
-      error = e?.message ?? String(e);
+      error = e?.message ?? String(e)
     }
   }
 
   async function remove(id: string) {
-    if (!$user) return;
+    if (!$user) return
     if ($students.length <= 1) {
-      error = $_("students.mustKeepOne");
-      return;
+      error = $_("students.mustKeepOne")
+      return
     }
-    if (!confirm($_("students.confirmDelete"))) return;
+    if (!confirm($_("students.confirmDelete"))) return
     try {
-      await deleteStudent($user.uid, id);
+      await deleteStudent($user.uid, id)
     } catch (e: any) {
-      error = e?.message ?? String(e);
+      error = e?.message ?? String(e)
     }
   }
 
   function makeActive(id: string) {
-    activeStudentId.set(id);
+    activeStudentId.set(id)
   }
 </script>
 
@@ -93,9 +85,7 @@
         >
         {#if editingId === s.id}
           <input bind:value={editingName} maxlength="40" />
-          <button class="btn-primary" on:click={saveEdit}
-            >{$_("common.save")}</button
-          >
+          <button class="btn-primary" on:click={saveEdit}>{$_("common.save")}</button>
           <button class="btn-ghost" on:click={() => (editingId = null)}
             >{$_("common.cancel")}</button
           >
