@@ -2,6 +2,7 @@
 id: de-avontuurlijke-kat
 title: De avontuurlijke kat
 level: A1
+grade: g4
 ageRange: [7, 8]
 tags: [dieren, bos]
 ---

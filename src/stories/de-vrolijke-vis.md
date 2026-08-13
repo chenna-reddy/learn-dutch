@@ -2,6 +2,7 @@
 id: de-vrolijke-vis
 title: De vrolijke vis
 level: A1
+grade: g4
 ageRange: [7, 8]
 tags: [dieren, huisdier]
 ---

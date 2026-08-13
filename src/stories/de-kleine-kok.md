@@ -2,6 +2,7 @@
 id: de-kleine-kok
 title: De kleine kok
 level: A1
+grade: g4
 ageRange: [7, 8]
 tags: [koken, familie]
 ---

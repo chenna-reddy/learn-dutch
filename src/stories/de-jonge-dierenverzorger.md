@@ -2,6 +2,7 @@
 id: de-jonge-dierenverzorger
 title: De jonge dierenverzorger
 level: A1
+grade: g4
 ageRange: [7, 8]
 tags: [dieren, boerderij]
 ---

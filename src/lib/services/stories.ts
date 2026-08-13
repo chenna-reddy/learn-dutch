@@ -34,6 +34,7 @@ export async function loadAllStories(): Promise<Story[]> {
         id,
         title: data.title ?? id,
         level: (data.level as Story["level"]) ?? "A1",
+        grade: (data.grade as Story["grade"]) ?? null,
         ageRange: data.ageRange,
         tags: data.tags,
         author: data.author,

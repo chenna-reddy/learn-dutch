@@ -88,6 +88,7 @@
   "addStory.tagline": "Plak een verhaal voor je leerling om te oefenen.",
   "addStory.titleLabel": "Titel",
   "addStory.levelLabel": "Niveau",
+  "addStory.gradeLabel": "Klas",
   "addStory.contentLabel": "Verhaaltekst",
   "addStory.hint": "Elke alinea wordt één zinkaart in de lezer.",
   "addStory.save": "Opslaan",

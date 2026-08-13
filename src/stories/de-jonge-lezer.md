@@ -2,6 +2,7 @@
 id: de-jonge-lezer
 title: De jonge lezer
 level: A1
+grade: g4
 ageRange: [7, 8]
 tags: [lezen, sprookjes]
 ---

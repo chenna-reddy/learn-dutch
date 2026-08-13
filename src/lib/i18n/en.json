@@ -88,6 +88,7 @@
   "addStory.tagline": "Paste a story for your student to practice.",
   "addStory.titleLabel": "Title",
   "addStory.levelLabel": "Level",
+  "addStory.gradeLabel": "Grade",
   "addStory.contentLabel": "Story text",
   "addStory.hint": "Each paragraph becomes one sentence card in the reader.",
   "addStory.save": "Save",

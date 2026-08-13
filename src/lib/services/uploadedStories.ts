@@ -34,6 +34,7 @@ export function mapUploadedStoryDoc(id: string, data: any): Story {
     id,
     title: String(data?.title ?? ""),
     level: (data?.level as CefrLevel) ?? "A1",
+    grade: (data?.grade as Story["grade"]) ?? null,
     sentences: Array.isArray(data?.sentences) ? data.sentences : [],
   }
 }
@@ -74,18 +75,21 @@ export async function createUploadedStory(
   uid: string,
   title: string,
   content: string,
-  level: CefrLevel
+  level: CefrLevel,
+  grade?: Story["grade"]
 ): Promise<void> {
   const trimmed = content.trim()
   if (!trimmed) throw new Error("content_required")
   const sentences = splitSentences(trimmed)
-  await addDoc(uploadedStoriesCollection(uid), {
+  const payload: Record<string, unknown> = {
     title: title.trim() || "Untitled",
     content: trimmed,
     level,
     sentences,
     createdAt: serverTimestamp(),
-  })
+  }
+  if (grade != null) payload.grade = grade
+  await addDoc(uploadedStoriesCollection(uid), payload)
 }
 
 export async function deleteUploadedStory(

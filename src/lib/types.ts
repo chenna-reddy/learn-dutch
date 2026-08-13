@@ -4,6 +4,7 @@ export interface StoryMeta {
   id: string
   title: string
   level: CefrLevel
+  grade?: "g4" | "g7" | null
   ageRange?: [number, number]
   tags?: string[]
   author?: string

@@ -2,6 +2,7 @@
 id: muis-en-zijn-nieuwe-huis
 title: Muis en zijn nieuwe huis
 level: A1
+grade: g4
 ageRange: [7, 8]
 tags: [dieren, vriendschap]
 ---

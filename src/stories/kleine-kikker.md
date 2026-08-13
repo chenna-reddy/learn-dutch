@@ -2,6 +2,7 @@
 id: kleine-kikker
 title: De Kleine Kikker
 level: A1
+grade: g4
 ageRange: [5, 7]
 tags: [dieren, natuur]
 ---

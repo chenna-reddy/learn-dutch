@@ -3,13 +3,19 @@
   import { user } from "../lib/stores/auth"
   import { createUploadedStory } from "../lib/services/uploadedStories"
   import { navigate } from "../lib/router"
-  import type { CefrLevel } from "../lib/types"
+  import type { CefrLevel, Story } from "../lib/types"
 
   const LEVELS: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"]
+  const GRADES: { value: Story["grade"]; label: string }[] = [
+    { value: null, label: "—" },
+    { value: "g4", label: "Grade 4" },
+    { value: "g7", label: "Grade 7" },
+  ]
 
   let title = ""
   let content = ""
   let level: CefrLevel = "A1"
+  let grade: Story["grade"] = null
   let error = ""
   let busy = false
 
@@ -27,7 +33,7 @@
     }
     busy = true
     try {
-      await createUploadedStory($user.uid, trimmedTitle, trimmedContent, level)
+      await createUploadedStory($user.uid, trimmedTitle, trimmedContent, level, grade)
       navigate({ name: "library" })
     } catch (e: any) {
       error = e?.message ?? String(e)
@@ -51,6 +57,15 @@
       <select bind:value={level}>
         {#each LEVELS as l}
           <option value={l}>{l}</option>
+        {/each}
+      </select>
+    </label>
+
+    <label>
+      <span>{$_("addStory.gradeLabel")}</span>
+      <select bind:value={grade}>
+        {#each GRADES as g}
+          <option value={g.value}>{g.label}</option>
         {/each}
       </select>
     </label>

@@ -2,6 +2,7 @@
 id: de-jonge-schilder
 title: De jonge schilder
 level: A1
+grade: g4
 ageRange: [7, 8]
 tags: [kunst, creativiteit]
 ---

@@ -2,6 +2,7 @@
 id: goudlokje
 title: Goudlokje en de Drie Beren
 level: A1
+grade: g4
 ageRange: [6, 8]
 tags: [sprookje, klassieker]
 ---
