@@ -248,7 +248,7 @@
 
     <header class="story-header">
       <h1>{story.title}</h1>
-      <span class="level">{story.level}</span>
+      <span class="grade">{story.grade ? story.grade.toUpperCase() : story.level}</span>
     </header>
 
     <p class="progress-label">
@@ -432,7 +432,7 @@
   .story-header h1 {
     margin: 0;
   }
-  .level {
+  .grade {
     background: var(--color-primary);
     color: white;
     padding: 0.15rem 0.55rem;

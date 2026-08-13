@@ -39,6 +39,7 @@ export interface ProgressState {
 export interface Student {
   id: string
   name: string
+  grade?: "g4" | "g7" | null
   avatarColor: string
   createdAt: string
 }

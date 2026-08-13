@@ -3,10 +3,19 @@
   import { user } from "../lib/stores/auth"
   import { students, activeStudent, activeStudentId } from "../lib/stores/students"
   import { createStudent, renameStudent, deleteStudent } from "../lib/services/students"
+  import type { Student } from "../lib/types"
+
+  const GRADES: { value: Student["grade"]; label: string }[] = [
+    { value: null, label: "—" },
+    { value: "g4", label: "Grade 4" },
+    { value: "g7", label: "Grade 7" },
+  ]
 
   let newName = ""
+  let newGrade: Student["grade"] = null
   let editingId: string | null = null
   let editingName = ""
+  let editingGrade: Student["grade"] = null
   let error = ""
 
   async function add() {
@@ -15,22 +24,24 @@
     const name = newName.trim()
     if (!name) return
     try {
-      await createStudent($user.uid, name)
+      await createStudent($user.uid, name, newGrade)
       newName = ""
+      newGrade = null
     } catch (e: any) {
       error = e?.message ?? String(e)
     }
   }
 
-  function startEdit(id: string, currentName: string) {
+  function startEdit(id: string, currentName: string, currentGrade: Student["grade"]) {
     editingId = id
     editingName = currentName
+    editingGrade = currentGrade ?? null
   }
 
   async function saveEdit() {
     if (!$user || !editingId) return
     try {
-      await renameStudent($user.uid, editingId, editingName)
+      await renameStudent($user.uid, editingId, editingName, editingGrade)
       editingId = null
     } catch (e: any) {
       error = e?.message ?? String(e)
@@ -68,6 +79,11 @@
         bind:value={newName}
         maxlength="40"
       />
+      <select bind:value={newGrade}>
+        {#each GRADES as g}
+          <option value={g.value}>{g.label}</option>
+        {/each}
+      </select>
       <button type="submit" class="btn-primary" disabled={!newName.trim()}
         >{$_("students.add")}</button
       >
@@ -85,12 +101,20 @@
         >
         {#if editingId === s.id}
           <input bind:value={editingName} maxlength="40" />
+          <select bind:value={editingGrade}>
+            {#each GRADES as g}
+              <option value={g.value}>{g.label}</option>
+            {/each}
+          </select>
           <button class="btn-primary" on:click={saveEdit}>{$_("common.save")}</button>
           <button class="btn-ghost" on:click={() => (editingId = null)}
             >{$_("common.cancel")}</button
           >
         {:else}
           <span class="name">{s.name}</span>
+          {#if s.grade}
+            <span class="badge grade">{s.grade.toUpperCase()}</span>
+          {/if}
           {#if $activeStudent?.id === s.id}
             <span class="badge">{$_("students.active")}</span>
           {:else}
@@ -100,7 +124,7 @@
           {/if}
           <button
             class="btn-ghost"
-            on:click={() => startEdit(s.id, s.name)}
+            on:click={() => startEdit(s.id, s.name, s.grade)}
             aria-label={$_("students.rename")}>&#9998;</button
           >
           <button
@@ -169,6 +193,10 @@
     border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 600;
+  }
+  .badge.grade {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--color-success);
   }
   .danger {
     color: var(--color-danger);

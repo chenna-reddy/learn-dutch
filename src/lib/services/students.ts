@@ -60,26 +60,33 @@ export async function ensureUserAndDefaultStudent(
   }
 }
 
-export async function createStudent(uid: string, name: string): Promise<void> {
+export async function createStudent(
+  uid: string,
+  name: string,
+  grade?: Student["grade"]
+): Promise<void> {
   const trimmed = name.trim()
   if (!trimmed) throw new Error("name_required")
-  await addDoc(studentsCollection(uid), {
+  const payload: Record<string, unknown> = {
     name: trimmed,
     avatarColor: pickAvatarColor(trimmed),
     createdAt: serverTimestamp(),
-  })
+  }
+  if (grade != null) payload.grade = grade
+  await addDoc(studentsCollection(uid), payload)
 }
 
 export async function renameStudent(
   uid: string,
   studentId: string,
-  name: string
+  name: string,
+  grade?: Student["grade"]
 ): Promise<void> {
   const trimmed = name.trim()
   if (!trimmed) throw new Error("name_required")
-  await updateDoc(doc(db, "users", uid, "students", studentId), {
-    name: trimmed,
-  })
+  const payload: Record<string, unknown> = { name: trimmed }
+  if (grade !== undefined) payload.grade = grade ?? null
+  await updateDoc(doc(db, "users", uid, "students", studentId), payload)
 }
 
 export async function deleteStudent(uid: string, studentId: string): Promise<void> {
@@ -89,9 +96,11 @@ export async function deleteStudent(uid: string, studentId: string): Promise<voi
 export function mapStudentDoc(id: string, data: any): Student {
   const createdAt =
     data?.createdAt?.toDate?.()?.toISOString?.() ?? new Date().toISOString()
+  const grade = data?.grade ?? null
   return {
     id,
     name: String(data?.name ?? ""),
+    grade: grade === "g4" || grade === "g7" ? grade : null,
     avatarColor: String(data?.avatarColor ?? pickAvatarColor(id)),
     createdAt,
   }

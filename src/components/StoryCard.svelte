@@ -20,7 +20,7 @@
 
 <button class="card story-card" on:click={open}>
   <div class="row top">
-    <span class="level">{story.level}</span>
+    <span class="grade">{story.grade ? story.grade.toUpperCase() : story.level}</span>
     {#if hasProgress}
       <span class="status {progress?.completed ? 'done' : progress && progress.currentSentenceIndex > 0 ? 'progress' : 'idle'}">{statusLabel}</span>
     {/if}
@@ -73,7 +73,7 @@
     margin: 0;
     color: var(--color-text);
   }
-  .level {
+  .grade {
     background: var(--color-primary);
     color: white;
     padding: 0.15rem 0.55rem;
