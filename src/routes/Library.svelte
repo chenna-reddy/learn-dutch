@@ -14,8 +14,31 @@
   let uploadedStories: Story[] = []
   let loadingBuiltIn = true
   let loadingUploaded = true
+  const GRADE_FILTER_KEY = "learn-dutch:gradeFilter"
+
+  function loadGradeFilter() {
+    if (typeof localStorage === "undefined") return { g4: true, g7: true }
+    try {
+      const raw = localStorage.getItem(GRADE_FILTER_KEY)
+      if (!raw) return { g4: true, g7: true }
+      const parsed = JSON.parse(raw)
+      return { g4: !!parsed.g4, g7: !!parsed.g7 }
+    } catch {
+      return { g4: true, g7: true }
+    }
+  }
+
+  function saveGradeFilter(filter: { g4: boolean; g7: boolean }) {
+    if (typeof localStorage === "undefined") return
+    try {
+      localStorage.setItem(GRADE_FILTER_KEY, JSON.stringify(filter))
+    } catch {
+      // ignore
+    }
+  }
+
   let showGradeMenu = false
-  let gradeFilter = { g4: true, g7: true }
+  let gradeFilter = loadGradeFilter()
   let dropdownEl: HTMLElement | null = null
 
   let unsubUploaded: (() => void) | null = null
@@ -71,6 +94,7 @@
       (s.grade === "g7" && gradeFilter.g7) ||
       (!s.grade && gradeFilter.g4)
   )
+  $: saveGradeFilter(gradeFilter)
   $: loading = loadingBuiltIn || loadingUploaded
 </script>
 

@@ -9,7 +9,7 @@ const storyModules = import.meta.glob("/src/stories/*.md", {
 
 export function splitSentences(body: string): string[] {
   return body
-    .split(/\n\s*\n/)
+    .split(/\n\s*\n|\n/)
     .map((s) => s.replace(/\s+/g, " ").trim())
     .filter(Boolean)
 }

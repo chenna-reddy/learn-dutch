@@ -451,6 +451,8 @@
     justify-content: center;
     gap: 1rem;
     transition: transform 0.35s ease-out, opacity 0.35s ease-out;
+    max-width: 100%;
+    overflow: hidden;
   }
   .sentence-card.leaving {
     transform: translateX(-30px);
@@ -461,6 +463,9 @@
     line-height: 1.4;
     margin: 0;
     text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   .word.ok {
     color: var(--color-success);
