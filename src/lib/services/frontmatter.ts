@@ -44,3 +44,34 @@ export function parseFrontmatter(raw: string): ParsedFrontmatter {
 
   return { data, content }
 }
+
+export function parseQuestions(content: string): { storyContent: string; questions: { question: string; answer: string }[] } {
+  const lines = content.split(/\r?\n/)
+  const questions: { question: string; answer: string }[] = []
+  const storyLines: string[] = []
+  let i = 0
+  while (i < lines.length) {
+    const line = lines[i].trim()
+    if (line.toUpperCase().startsWith("Q:")) {
+      const question = line.slice(2).trim()
+      i++
+      let answer = ""
+      while (i < lines.length) {
+        const ansLine = lines[i].trim()
+        if (ansLine.toUpperCase().startsWith("A:")) {
+          answer = ansLine.slice(2).trim()
+          i++
+          break
+        }
+        i++
+      }
+      if (question && answer) {
+        questions.push({ question, answer })
+      }
+    } else {
+      storyLines.push(lines[i])
+      i++
+    }
+  }
+  return { storyContent: storyLines.join("\n"), questions }
+}

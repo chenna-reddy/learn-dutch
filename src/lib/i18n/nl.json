@@ -97,5 +97,11 @@
   "addStory.hint": "Elke alinea wordt één zinkaart in de lezer.",
   "addStory.save": "Opslaan",
   "addStory.saving": "Bezig met opslaan...",
-  "addStory.errorContent": "Voer de verhaaltekst in."
+  "addStory.errorContent": "Voer de verhaaltekst in.",
+  "questions.questionOf": "Vraag {current} van {total}",
+  "questions.answer": "Antwoord",
+  "questions.showAnswer": "Toon antwoord",
+  "questions.backToStory": "Terug naar verhaal",
+  "questions.noQuestions": "Geen vragen beschikbaar voor dit verhaal.",
+  "reader.goToQuestions": "Vragen"
 }

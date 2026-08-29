@@ -3,6 +3,7 @@ import { writable } from "svelte/store"
 export type Route =
   | { name: "library" }
   | { name: "reader"; storyId: string }
+  | { name: "questions"; storyId: string }
   | { name: "settings" }
   | { name: "students" }
   | { name: "progress" }
@@ -15,6 +16,8 @@ function parse(hash: string): Route {
   if (h === "students") return { name: "students" }
   if (h === "progress") return { name: "progress" }
   if (h === "add-story") return { name: "addStory" }
+  const questionsMatch = h.match(/^story\/([^/]+)\/questions$/)
+  if (questionsMatch) return { name: "questions", storyId: questionsMatch[1] }
   const readerMatch = h.match(/^story\/([^/]+)$/)
   if (readerMatch) return { name: "reader", storyId: readerMatch[1] }
   return { name: "library" }
@@ -38,7 +41,9 @@ export function navigate(next: Route): void {
             ? "#/progress"
             : next.name === "addStory"
               ? "#/add-story"
-              : `#/story/${next.storyId}`
+              : next.name === "questions"
+                ? `#/story/${next.storyId}/questions`
+                : `#/story/${next.storyId}`
   if (window.location.hash !== hash) {
     window.location.hash = hash
   } else {

@@ -1,4 +1,4 @@
-import { parseFrontmatter } from "./frontmatter"
+import { parseFrontmatter, parseQuestions } from "./frontmatter"
 import type { Story, StoryMeta } from "../types"
 
 const storyModules = import.meta.glob("/src/stories/*.md", {
@@ -30,6 +30,7 @@ export async function loadAllStories(): Promise<Story[]> {
       const parsed = parseFrontmatter(raw)
       const data = parsed.data as Partial<StoryMeta>
       const id = data.id ?? idFromPath(path)
+      const { storyContent, questions } = parseQuestions(parsed.content)
       const story: Story = {
         id,
         title: data.title ?? id,
@@ -38,7 +39,8 @@ export async function loadAllStories(): Promise<Story[]> {
         ageRange: data.ageRange,
         tags: data.tags,
         author: data.author,
-        sentences: splitSentences(parsed.content),
+        sentences: splitSentences(storyContent),
+        questions: questions.length > 0 ? questions : undefined,
       }
       return story
     })

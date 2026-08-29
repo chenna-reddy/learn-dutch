@@ -10,8 +10,14 @@ export interface StoryMeta {
   author?: string
 }
 
+export interface Question {
+  question: string
+  answer: string
+}
+
 export interface Story extends StoryMeta {
   sentences: string[]
+  questions?: Question[]
 }
 
 export interface AttemptRecord {

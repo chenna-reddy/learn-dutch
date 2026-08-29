@@ -3,6 +3,7 @@
   import Header from "./components/Header.svelte"
   import Library from "./routes/Library.svelte"
   import Reader from "./routes/Reader.svelte"
+  import Questions from "./routes/Questions.svelte"
   import Settings from "./routes/Settings.svelte"
   import Students from "./routes/Students.svelte"
   import Login from "./routes/Login.svelte"
@@ -31,6 +32,8 @@
       <Progress />
     {:else if $route.name === "addStory"}
       <AddStory />
+    {:else if $route.name === "questions"}
+      <Questions storyId={$route.storyId} />
     {/if}
   </main>
 {/if}

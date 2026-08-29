@@ -97,5 +97,11 @@
   "addStory.hint": "Each paragraph becomes one sentence card in the reader.",
   "addStory.save": "Save",
   "addStory.saving": "Saving...",
-  "addStory.errorContent": "Please enter the story text."
+  "addStory.errorContent": "Please enter the story text.",
+  "questions.questionOf": "Question {current} of {total}",
+  "questions.answer": "Answer",
+  "questions.showAnswer": "Show Answer",
+  "questions.backToStory": "Back to story",
+  "questions.noQuestions": "No questions available for this story.",
+  "reader.goToQuestions": "Questions"
 }

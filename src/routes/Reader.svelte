@@ -460,6 +460,14 @@
       </button>
     </div>
 
+    {#if story.questions && story.questions.length > 0}
+      <div class="questions-link">
+        <button class="btn-secondary" on:click={() => navigate({ name: "questions", storyId })}>
+          {$_("reader.goToQuestions")}
+        </button>
+      </div>
+    {/if}
+
     <details class="jump">
       <summary>{$_("reader.jumpTo")}</summary>
       <ol class="jump-list">
@@ -758,5 +766,10 @@
   .jump-num {
     color: var(--color-muted);
     min-width: 2ch;
+  }
+  .questions-link {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
   }
 </style>

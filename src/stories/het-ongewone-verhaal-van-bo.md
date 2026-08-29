@@ -83,3 +83,15 @@ Ik dus ook een keer aan de beurt zou komen.
 
 'Hoezo zijn beurt?' fluisterde ik tegen Tom.
 'Iedereen,' fluisterde hij terug, zodat mijn buik niet bedroefd was door de gedachte dat alleen ik zou moeten voorlezen.
+
+Q: Hoe heet de hoofdpersoon in dit verhaal?
+A: Bo
+
+Q: Met wie maakt Bo vrienden?
+A: Tom
+
+Q: Waarom eet Bo zijn boterhammen niet op?
+A: Omdat hij geen honger heeft en nerveus is.
+
+Q: Wat doet juf Elske met de klas?
+A: Ze laat de kinderen om de beurt voorlezen.
