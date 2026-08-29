@@ -108,7 +108,7 @@ export async function translateSentence(sentence: string): Promise<string> {
   if (!user) throw new Error("not_signed_in")
   const idToken = await user.getIdToken()
 
-  const res = await fetch("/api/translate-sentence", {
+  const res = await fetch("/api/translate", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${idToken}`,
