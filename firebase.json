@@ -11,6 +11,10 @@
         "source": "/api/translate",
         "function": { "functionId": "translateWord", "region": "europe-west3" }
       },
+      {
+        "source": "/api/translate-sentence",
+        "function": { "functionId": "translateSentence", "region": "europe-west3" }
+      },
       { "source": "**", "destination": "/index.html" }
     ],
     "headers": [

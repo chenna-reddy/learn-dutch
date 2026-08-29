@@ -66,3 +66,64 @@ export async function translateWord(word: string): Promise<string> {
   saveCache(cache)
   return translated
 }
+
+const SENTENCE_CACHE_KEY = "learn-dutch:sentence-translations:v1"
+
+interface SentenceCache {
+  [sentence: string]: string
+}
+
+function loadSentenceCache(): SentenceCache {
+  if (typeof localStorage === "undefined") return {}
+  try {
+    const raw = localStorage.getItem(SENTENCE_CACHE_KEY)
+    return raw ? (JSON.parse(raw) as SentenceCache) : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveSentenceCache(cache: SentenceCache): void {
+  if (typeof localStorage === "undefined") return
+  try {
+    localStorage.setItem(SENTENCE_CACHE_KEY, JSON.stringify(cache))
+  } catch {
+    // ignore quota
+  }
+}
+
+let sentenceCache = loadSentenceCache()
+
+export function getCachedSentence(sentence: string): string | undefined {
+  return sentenceCache[sentence]
+}
+
+export async function translateSentence(sentence: string): Promise<string> {
+  if (!sentence.trim()) return ""
+
+  const cached = sentenceCache[sentence]
+  if (cached !== undefined) return cached
+
+  const user = auth.currentUser
+  if (!user) throw new Error("not_signed_in")
+  const idToken = await user.getIdToken()
+
+  const res = await fetch("/api/translate-sentence", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ sentence: sentence.trim() }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`translate_failed: ${res.status}`)
+  }
+
+  const data = (await res.json()) as { translated?: string }
+  const translated = data.translated ?? ""
+  sentenceCache[sentence] = translated
+  saveSentenceCache(sentenceCache)
+  return translated
+}

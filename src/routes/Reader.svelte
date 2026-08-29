@@ -22,7 +22,13 @@
   import { user } from "../lib/stores/auth"
   import type { Story } from "../lib/types"
   import { navigate } from "../lib/router"
-  import { translateWord, stripPunctuation, getCached } from "../lib/services/translation"
+  import {
+  translateWord,
+  translateSentence,
+  stripPunctuation,
+  getCached,
+  getCachedSentence,
+} from "../lib/services/translation"
 
   export let storyId: string
 
@@ -59,6 +65,9 @@
   let translating = false
   let showPopup = false
   let leaving = false
+  let sentenceTranslation = ""
+  let sentenceTranslating = false
+  let showSentenceTranslation = false
 
   $: current = story?.sentences[index] ?? ""
   $: words = splitWords(current)
@@ -219,13 +228,52 @@
     translating = false
   }
 
+  function closeSentenceTranslation() {
+    showSentenceTranslation = false
+    sentenceTranslation = ""
+    sentenceTranslating = false
+  }
+
+  async function handleTranslateSentence() {
+    if (!current) return
+    if (showSentenceTranslation) {
+      closeSentenceTranslation()
+      return
+    }
+    if ($settingsStore.translationSource === "none") {
+      sentenceTranslation = ""
+      showSentenceTranslation = true
+      return
+    }
+    const cached = getCachedSentence(current)
+    if (cached) {
+      sentenceTranslation = cached
+      showSentenceTranslation = true
+      return
+    }
+    sentenceTranslating = true
+    showSentenceTranslation = true
+    try {
+      const t = await translateSentence(current)
+      sentenceTranslation = t
+    } catch (err) {
+      console.warn("Sentence translation failed", err)
+      sentenceTranslation = ""
+    } finally {
+      sentenceTranslating = false
+    }
+  }
+
   function speakWord() {
     if (!selectedClean) return
     speak({ text: selectedClean, rate: $settingsStore.ttsRate }, $settingsStore)
   }
 
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") closePopup()
+    if (e.key === "Escape") {
+      closePopup()
+      closeSentenceTranslation()
+    }
   }
 </script>
 
@@ -270,7 +318,17 @@
           {/each}
         </p>
       {:else}
-        <p class="sentence">{current}</p>
+        <p class="sentence">
+          {#each words as word, i}
+            <span
+              class="word-clickable"
+              role="button"
+              tabindex="0"
+              on:click={(e) => handleWordClick(e, word)}
+              on:keypress={(e) => e.key === "Enter" && handleWordClick(e as any, word)}
+              >{word + (i < words.length - 1 ? " " : "")}</span>
+          {/each}
+        </p>
       {/if}
 
       {#if lastResult}
@@ -334,12 +392,33 @@
       {/if}
     </div>
 
+    {#if showSentenceTranslation}
+      <div class="sentence-translation card">
+        <div class="translation-header">
+          <span class="translation-label">{$_("reader.translation")}</span>
+          <button class="btn-ghost popup-close" on:click={closeSentenceTranslation}>&times;</button>
+        </div>
+        {#if $settingsStore.translationSource === "none"}
+          <p class="popup-note">{$_("reader.translationDisabled")}</p>
+        {:else if sentenceTranslating}
+          <p class="popup-note">{$_("reader.translating")}...</p>
+        {:else if sentenceTranslation}
+          <p class="popup-translation">{sentenceTranslation}</p>
+        {:else}
+          <p class="popup-note">{$_("reader.noTranslation")}</p>
+        {/if}
+      </div>
+    {/if}
+
     <div class="controls">
-      <button class="btn-primary" on:click={handleListen}>
+      <button class={isSpeaking ? "btn-primary" : "btn-secondary"} on:click={handleListen}>
         {isSpeaking ? $_("reader.stop") : $_("reader.listen")}
       </button>
-      <button class="btn-secondary" on:click={handleSpeak} disabled={!canRecognize}>
+      <button class={isListening ? "btn-primary" : "btn-secondary"} on:click={handleSpeak} disabled={!canRecognize}>
         {isListening ? $_("reader.stopSpeaking") : $_("reader.speak")}
+      </button>
+      <button class={showSentenceTranslation ? "btn-primary" : "btn-secondary"} on:click={handleTranslateSentence} disabled={!current}>
+        {showSentenceTranslation ? $_("reader.close") : $_("reader.translateSentence")}
       </button>
     </div>
 
@@ -461,13 +540,15 @@
     color: var(--color-danger);
     text-decoration: underline wavy;
   }
-  .word {
+  .word,
+  .word-clickable {
     cursor: pointer;
     border-radius: 4px;
     padding: 0.1rem 0.15rem;
     transition: background 0.1s ease;
   }
-  .word:hover {
+  .word:hover,
+  .word-clickable:hover {
     background: rgba(11, 107, 203, 0.12);
   }
   .word-popup {
@@ -518,6 +599,24 @@
     margin: 0;
     font-size: 0.85rem;
     color: var(--color-muted);
+  }
+  .sentence-translation {
+    padding: 0.75rem 1rem;
+    margin: 0;
+  }
+  .translation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .translation-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
   .score-row {
     display: flex;
