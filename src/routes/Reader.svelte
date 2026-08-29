@@ -266,23 +266,11 @@
               on:click={(e) => handleWordClick(e, w.expected)}
               on:keypress={(e) =>
                 e.key === "Enter" && handleWordClick(e as any, w.expected)}
-              >{w.expected}</span
-            >{#if i < lastResult.wordMatches.length - 1}<span>&nbsp;</span>{/if}
+              >{w.expected + (i < lastResult.wordMatches.length - 1 ? " " : "")}</span>
           {/each}
         </p>
       {:else}
-        <p class="sentence">
-          {#each words as word, i}
-            <span
-              class="word-clickable"
-              role="button"
-              tabindex="0"
-              on:click={(e) => handleWordClick(e, word)}
-              on:keypress={(e) => e.key === "Enter" && handleWordClick(e as any, word)}
-              >{word}</span
-            >{#if i < words.length - 1}<span>&nbsp;</span>{/if}
-          {/each}
-        </p>
+        <p class="sentence">{current}</p>
       {/if}
 
       {#if lastResult}
@@ -462,10 +450,9 @@
     font-size: 1.7rem;
     line-height: 1.4;
     margin: 0;
-    text-align: center;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
+    text-align: start;
+    word-break: normal;
+    overflow-wrap: normal;
   }
   .word.ok {
     color: var(--color-success);
@@ -474,14 +461,12 @@
     color: var(--color-danger);
     text-decoration: underline wavy;
   }
-  .word-clickable,
   .word {
     cursor: pointer;
     border-radius: 4px;
     padding: 0.1rem 0.15rem;
     transition: background 0.1s ease;
   }
-  .word-clickable:hover,
   .word:hover {
     background: rgba(11, 107, 203, 0.12);
   }
