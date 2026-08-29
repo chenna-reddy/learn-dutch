@@ -114,7 +114,7 @@ export async function translateSentence(sentence: string): Promise<string> {
       Authorization: `Bearer ${idToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ sentence: sentence.trim() }),
+    body: JSON.stringify({ word: sentence.trim() }),
   })
 
   if (!res.ok) {

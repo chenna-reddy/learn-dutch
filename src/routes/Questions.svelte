@@ -102,6 +102,7 @@
     stopSpeaking()
     lastResult = null
     showAnswer = false
+    closeSentenceTranslation()
     index = Math.max(0, index - 1)
   }
 
@@ -109,6 +110,7 @@
     stopSpeaking()
     lastResult = null
     showAnswer = false
+    closeSentenceTranslation()
     if (story?.questions && index < story.questions.length - 1) {
       index++
     }

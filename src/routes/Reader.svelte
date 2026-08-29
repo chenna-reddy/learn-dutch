@@ -164,6 +164,7 @@
   function goPrev() {
     stopSpeaking()
     lastResult = null
+    closeSentenceTranslation()
     index = Math.max(0, index - 1)
     setCurrentSentence(storyId, index)
   }
@@ -171,6 +172,7 @@
   function goNext() {
     stopSpeaking()
     lastResult = null
+    closeSentenceTranslation()
     if (!story) return
     if (index < story.sentences.length - 1) {
       index++
@@ -184,6 +186,7 @@
   function jumpTo(i: number) {
     stopSpeaking()
     lastResult = null
+    closeSentenceTranslation()
     index = i
     setCurrentSentence(storyId, i)
   }
