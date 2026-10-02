@@ -68,6 +68,7 @@
   let sentenceTranslation = ""
   let sentenceTranslating = false
   let showSentenceTranslation = false
+  let sentenceTranslationRequest = 0
 
   $: current = story?.sentences[index] ?? ""
   $: words = splitWords(current)
@@ -164,19 +165,19 @@
   function goPrev() {
     stopSpeaking()
     lastResult = null
-    closeSentenceTranslation()
     index = Math.max(0, index - 1)
     setCurrentSentence(storyId, index)
+    updateVisibleSentenceTranslation()
   }
 
   function goNext() {
     stopSpeaking()
     lastResult = null
-    closeSentenceTranslation()
     if (!story) return
     if (index < story.sentences.length - 1) {
       index++
       setCurrentSentence(storyId, index)
+      updateVisibleSentenceTranslation()
       if (index === story.sentences.length - 1 && !progress?.completed) {
         setCompleted(storyId, true)
       }
@@ -186,9 +187,9 @@
   function jumpTo(i: number) {
     stopSpeaking()
     lastResult = null
-    closeSentenceTranslation()
     index = i
     setCurrentSentence(storyId, i)
+    updateVisibleSentenceTranslation()
   }
 
   function splitWords(text: string): string[] {
@@ -232,39 +233,59 @@
   }
 
   function closeSentenceTranslation() {
+    sentenceTranslationRequest++
     showSentenceTranslation = false
     sentenceTranslation = ""
     sentenceTranslating = false
   }
 
-  async function handleTranslateSentence() {
+  function updateVisibleSentenceTranslation() {
+    if (showSentenceTranslation && story) {
+      void updateSentenceTranslation(story.sentences[index] ?? "")
+    }
+  }
+
+  async function updateSentenceTranslation(sentence: string) {
+    const request = ++sentenceTranslationRequest
+    sentenceTranslation = ""
+    sentenceTranslating = false
+
+    if ($settingsStore.translationSource === "none") {
+      return
+    }
+
+    const cached = getCachedSentence(sentence)
+    if (cached) {
+      sentenceTranslation = cached
+      return
+    }
+
+    sentenceTranslating = true
+    try {
+      const translation = await translateSentence(sentence)
+      if (request === sentenceTranslationRequest) {
+        sentenceTranslation = translation
+      }
+    } catch (err) {
+      console.warn("Sentence translation failed", err)
+      if (request === sentenceTranslationRequest) {
+        sentenceTranslation = ""
+      }
+    } finally {
+      if (request === sentenceTranslationRequest) {
+        sentenceTranslating = false
+      }
+    }
+  }
+
+  function handleTranslateSentence() {
     if (!current) return
     if (showSentenceTranslation) {
       closeSentenceTranslation()
       return
     }
-    if ($settingsStore.translationSource === "none") {
-      sentenceTranslation = ""
-      showSentenceTranslation = true
-      return
-    }
-    const cached = getCachedSentence(current)
-    if (cached) {
-      sentenceTranslation = cached
-      showSentenceTranslation = true
-      return
-    }
-    sentenceTranslating = true
     showSentenceTranslation = true
-    try {
-      const t = await translateSentence(current)
-      sentenceTranslation = t
-    } catch (err) {
-      console.warn("Sentence translation failed", err)
-      sentenceTranslation = ""
-    } finally {
-      sentenceTranslating = false
-    }
+    void updateSentenceTranslation(current)
   }
 
   function speakWord() {
@@ -275,7 +296,6 @@
   function onKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       closePopup()
-      closeSentenceTranslation()
     }
   }
 </script>
