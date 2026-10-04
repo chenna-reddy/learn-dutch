@@ -1,6 +1,7 @@
 import type { Settings } from "../types"
 import { scoreLocally, type LocalScore } from "./scoring"
 import { fetchSpeechToken } from "./azureAuth"
+import { getListeningTimeouts } from "./listeningTimeouts"
 
 interface SpeechRecognitionResultLike {
   transcript: string
@@ -80,11 +81,7 @@ function recognizeWithWebSpeech(
   const Ctor = getWebSpeechCtor()
   if (!Ctor) throw new Error("Web Speech API not supported in this browser")
 
-  const expectedWordCount = expected
-    .toLowerCase()
-    .replace(/[^\p{L}\s'-]/gu, " ")
-    .split(/\s+/)
-    .filter(Boolean).length
+  const { wordCount: expectedWordCount, maxListenMs } = getListeningTimeouts(expected)
 
   const recognizer = new Ctor()
   recognizer.lang = "nl-NL"
@@ -96,6 +93,8 @@ function recognizeWithWebSpeech(
   let finalTranscript = ""
   let interimTranscript = ""
   let startedAt = 0
+  let sessionStartedAt = 0
+  let listenTimer: ReturnType<typeof setTimeout> | undefined
   let stopped = false
   let resolved = false
 
@@ -103,6 +102,7 @@ function recognizeWithWebSpeech(
     const finish = () => {
       if (resolved) return
       resolved = true
+      clearTimeout(listenTimer)
       const combined = (finalTranscript + " " + interimTranscript).trim()
       const local: LocalScore = scoreLocally(expected, combined)
       resolve({
@@ -117,6 +117,17 @@ function recognizeWithWebSpeech(
 
     recognizer.onstart = () => {
       startedAt = Date.now()
+      if (!sessionStartedAt) {
+        sessionStartedAt = startedAt
+        listenTimer = setTimeout(() => {
+          stopped = true
+          try {
+            recognizer.stop()
+          } catch {
+            finish()
+          }
+        }, maxListenMs)
+      }
     }
 
     recognizer.onresult = (event: any) => {
@@ -145,12 +156,13 @@ function recognizeWithWebSpeech(
         return
       }
       resolved = true
+      clearTimeout(listenTimer)
       reject(new Error(code))
     }
 
     recognizer.onend = () => {
-      const elapsed = Date.now() - startedAt
-      if (!userStopped && !stopped && elapsed < 30_000) {
+      const elapsed = Date.now() - sessionStartedAt
+      if (!resolved && !userStopped && !stopped && elapsed < maxListenMs) {
         try {
           recognizer.start()
           return
@@ -164,6 +176,8 @@ function recognizeWithWebSpeech(
     try {
       recognizer.start()
     } catch (err) {
+      resolved = true
+      clearTimeout(listenTimer)
       reject(err)
     }
   })
@@ -204,13 +218,14 @@ async function recognizeWithAzure(
 
   const speechConfig = sdk.SpeechConfig.fromAuthorizationToken(token, region)
   speechConfig.speechRecognitionLanguage = "nl-NL"
+  const { initialSilenceMs, endSilenceMs } = getListeningTimeouts(expected)
   speechConfig.setProperty(
-    sdk.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs,
-    "3000"
+    sdk.PropertyId.Speech_SegmentationSilenceTimeoutMs,
+    String(endSilenceMs)
   )
   speechConfig.setProperty(
     sdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs,
-    "8000"
+    String(initialSilenceMs)
   )
 
   const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput()
